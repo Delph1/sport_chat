@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Laktaren.Api/Laktaren.Api.csproj" />
+  <Project Path="Laktaren.Application/Laktaren.Application.csproj" />
+  <Project Path="Laktaren.Domain/Laktaren.Domain.csproj" />
+  <Project Path="Laktaren.Infrastructure/Laktaren.Infrastructure.csproj" />
+</Solution>
