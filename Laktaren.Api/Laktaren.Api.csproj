@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Laktaren.Infrastructure\Laktaren.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
