@@ -8,5 +8,7 @@
         public required string Password { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        // Navigation properties
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }
