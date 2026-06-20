@@ -11,6 +11,14 @@ namespace Laktaren.Api.Controllers
 
         private readonly IPostRepository _postRepository;
 
+        [HttpGet]
+        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<List<Post>> GetAllPostsAsync()
+        {
+            return await _postRepository.GetAllPostsAsync();
+        }
+
         [HttpGet("id")]
         [ProducesResponseType(typeof(Post), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

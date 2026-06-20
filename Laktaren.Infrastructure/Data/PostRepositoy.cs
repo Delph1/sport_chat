@@ -11,6 +11,12 @@ namespace Laktaren.Infrastructure.Data
     {
         private readonly ApplicationDbContext _context;
 
+        public async Task<List<Post>> GetAllPostsAsync()
+        {
+            List<Post> posts = await _context.Posts.ToListAsync();
+            return posts;
+        }
+
         public async Task<Post> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
