@@ -23,7 +23,6 @@ namespace Laktaren.Infrastructure.Data
             return await _context.Users.FindAsync(id);
         }
 
-        // RÄTTAT: Vi returnerar User istället för IActionResult
         public async Task<User> CreateUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
@@ -38,7 +37,6 @@ namespace Laktaren.Infrastructure.Data
             return user;
         }
 
-        // RÄTTAT: Vi returnerar en boolean (true/false) istället för IActionResult
         public async Task<bool> DeleteUserAsync(Guid id)
         {
             User? user = await _context.Users.FindAsync(id);
@@ -54,8 +52,25 @@ namespace Laktaren.Infrastructure.Data
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            // Letar upp den första användaren som matchar e-postadressen
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> SavePreferencesAsync(User updatedUser)
+        {
+            var existingUser = await _context.Users.FindAsync(updatedUser.Id);
+
+            if (existingUser == null)
+            {
+                return false;
+            }
+
+            existingUser.TeamId = updatedUser.TeamId;
+            existingUser.UseTeamColors = updatedUser.UseTeamColors;
+            existingUser.SecondaryTeams = updatedUser.SecondaryTeams;
+
+            var rowsAffected = await _context.SaveChangesAsync();
+
+            return rowsAffected > 0;
         }
     }
 }

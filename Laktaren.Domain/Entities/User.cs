@@ -1,6 +1,4 @@
-﻿using static System.Collections.Specialized.BitVector32;
-
-namespace Laktaren.Domain.Entities
+﻿namespace Laktaren.Domain.Entities
 {
     public class User
     {
@@ -9,8 +7,9 @@ namespace Laktaren.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public required string Password { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        // Navigation properties
+        public Guid? TeamId { get; set; } //Favorite team
+        public bool UseTeamColors { get; set; }
+        public ICollection<Team> SecondaryTeams { get; set; } = new List<Team>();
         public ICollection<Post> Posts { get; set; } = new List<Post>();
         public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
     }

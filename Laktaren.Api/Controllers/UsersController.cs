@@ -158,5 +158,29 @@ namespace Laktaren.Api.Controllers
                 UserId = user.Id
             });
         }
+
+        [Authorize]
+        [HttpPut("preferences")] 
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> SavePreferencesAsync([FromBody] User request)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Ogiltig biljett. Logga in igen.");
+            }
+
+            var success = await _userRepository.SavePreferencesAsync(request);
+
+            if (!success)
+            {
+                return BadRequest("Kunde inte spara inställningarna på läktaren.");
+            }
+
+            return Ok(new { Message = "Inställningarna är nu sparade!" });
+        }
     }
 }

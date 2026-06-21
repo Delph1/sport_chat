@@ -11,5 +11,6 @@ namespace Laktaren.Application.Interfaces
         Task <User> UpdateUserAsync(User user);
         Task <bool> DeleteUserAsync(Guid id);
         Task<User?> GetByEmailAsync(string email);
+        Task<bool> SavePreferencesAsync(User user);
     }
 }

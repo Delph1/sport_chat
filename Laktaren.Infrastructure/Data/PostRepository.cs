@@ -22,18 +22,19 @@ namespace Laktaren.Infrastructure.Data
                 .ToListAsync();
         }
 
-        public async Task<Post> GetByIdAsync(Guid id)
+        public async Task<Post?> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
             {
                 return null;
             }
+
             return await _context.Posts
                 .Include(p => p.Reactions)
                     .ThenInclude(r => r.Team)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
-        
+
         public async Task<List<Post>> GetPostsByUserIdAsync(Guid userId)
         {
             return await _context.Posts

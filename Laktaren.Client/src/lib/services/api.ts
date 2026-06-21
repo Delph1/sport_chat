@@ -39,3 +39,15 @@ export async function createPost(postData: any) {
         body: JSON.stringify(postData)
     });
 }
+
+export async function toggleReaction(postId: string) {
+    const token = localStorage.getItem('token');
+
+    return await fetch(`${API_BASE_URL}/reactions/${postId}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+        }
+    });
+}

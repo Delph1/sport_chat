@@ -1,0 +1,72 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Laktaren.Application.Interfaces;
+using Laktaren.Domain.Entities;
+// OBS: Ingen "using Laktaren.Infrastructure.Data" här!
+
+namespace Laktaren.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ReactionsController : ControllerBase
+    {
+        private readonly IReactionRepository _reactionRepository;
+
+        public ReactionsController(IReactionRepository reactionRepository)
+        {
+            _reactionRepository = reactionRepository;
+        }
+
+        [HttpGet("{postId}")]
+        [ProducesResponseType(typeof(List<Reaction>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetReactionsByPostIdAsync(Guid postId)
+        {
+            if (postId == Guid.Empty)
+            {
+                return BadRequest("Inget giltigt inlägg angavs.");
+            }
+
+            var reactions = await _reactionRepository.GetReactionsByPostIdAsync(postId);
+            return Ok(reactions);
+        }
+
+        [Authorize]
+        [HttpPost("{postId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ToggleReactionAsync(Guid postId)
+        {
+            if (postId == Guid.Empty)
+            {
+                return BadRequest("Inget giltigt inlägg angavs.");
+            }
+
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Din biljett är ogiltig. Logga in igen.");
+            }
+
+            var reaction = new Reaction
+            {
+                PostId = postId,
+                UserId = userId
+            };
+
+            bool isLiked = await _reactionRepository.ToggleReactionAsync(reaction);
+
+            if (isLiked)
+            {
+                return Ok(new { Message = "Du jublade åt inlägget!", Liked = true });
+            }
+            else
+            {
+                return Ok(new { Message = "Du tog tillbaka ditt jubel.", Liked = false });
+            }
+        }
+    }
+}

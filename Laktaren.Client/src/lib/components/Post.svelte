@@ -1,19 +1,38 @@
 <script>
-    // Svelte 5 sätt att ta emot props
+    import { toggleReaction } from '$lib/services/api';
+
+    // Svelte 5: Så här tar vi emot data (props) från föräldern
     let { post } = $props();
 
-    // Reaktivt framräknade värden med $derived
-    let likesCount = $derived((post.reactions || []).filter(r => r.isLike).length);
-    
-    let dislikesByTeam = $derived((post.reactions || [])
-        .filter(r => !r.isLike)
-        .reduce((acc, reaction) => {
-            // Fallback om lag saknas av någon anledning
-            const teamName = reaction.team?.name || 'Okänt lag'; 
-            acc[teamName] = (acc[teamName] || 0) + 1;
-            return acc;
-        }, {})
-    );
+    async function handleReaction() {
+        // Enkel koll om vi saknar biljett i webbläsaren
+        if (!localStorage.getItem('token')) {
+            alert("Du måste stå på läktaren (vara inloggad) för att kunna jubla!");
+            return;
+        }
+
+        try {
+            const response = await toggleReaction(post.id);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Eftersom post är ett objekt skickat som prop, uppdateras
+                // gränssnittet direkt när vi ändrar dess värden!
+                if (data.liked) {
+                    post.likeCount = (post.likeCount || 0) + 1;
+                    post.userHasLiked = true; 
+                } else {
+                    post.likeCount = Math.max(0, (post.likeCount || 1) - 1);
+                    post.userHasLiked = false;
+                }
+            } else if (response.status === 401) {
+                alert("Din biljett har gått ut, logga in igen via menyn.");
+            }
+        } catch (error) {
+            console.error("Det gick inte att nå domaren:", error);
+        }
+    }
 </script>
 
 <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
@@ -22,30 +41,23 @@
         <span class="text-xs text-gray-500 font-medium">Nyligen</span>
     </div>
     
-    <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 mt-3 border-t border-gray-100">
-        
-        <button class="flex items-center space-x-2 text-gray-500 hover:text-slate-900 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path>
+    <p class="text-gray-800 leading-relaxed whitespace-pre-wrap mb-4">{post.content}</p>
+    
+    <div class="flex items-center pt-2 border-t border-gray-50">
+        <button 
+            onclick={handleReaction}
+            class="flex items-center space-x-1 group transition-colors {post.userHasLiked ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                 class="h-5 w-5 transition-transform group-hover:scale-110 {post.userHasLiked ? 'fill-current' : 'fill-none'}" 
+                 viewBox="0 0 24 24" 
+                 stroke="currentColor" 
+                 stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span class="font-bold">{likesCount}</span>
+            <span class="font-medium text-sm">
+                {post.likeCount || 0}
+            </span>
         </button>
-
-        <div class="mt-3 sm:mt-0 text-sm">
-            {#if Object.keys(dislikesByTeam).length > 0}
-                <div class="flex flex-wrap gap-2 items-center">
-                    <span class="text-gray-500 mr-1 text-xs uppercase tracking-wider font-bold">Rival-koll:</span>
-                    {#each Object.entries(dislikesByTeam) as [teamName, count]}
-                        <span class="bg-gray-100 px-2 py-1 rounded text-gray-700 text-xs font-medium">
-                            {teamName} <strong class="text-red-500 ml-1">{count}</strong>
-                        </span>
-                    {/each}
-                </div>
-            {:else}
-                <span class="text-gray-400 text-xs italic">Inga rivaler har reagerat än.</span>
-            {/if}
-        </div>
     </div>
 </article>

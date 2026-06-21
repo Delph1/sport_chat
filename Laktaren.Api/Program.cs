@@ -19,6 +19,8 @@ builder.Services.AddSingleton<IDriver>(GraphDatabase.Driver(neo4jUri, AuthTokens
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<IReactionRepository, ReactionRepository>();
+builder.Services.AddScoped<ITeamRepository,  TeamRepository>();
 
 builder.Services.AddControllers();
 
