@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
-using Laktaren.Application.Interfaces;
+using Laktaren.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Laktaren.Api.Controllers
 {
@@ -11,77 +15,108 @@ namespace Laktaren.Api.Controllers
 
         private readonly IPostRepository _postRepository;
 
-        [HttpGet]
-        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<List<Post>> GetAllPostsAsync()
+        public PostsController(IPostRepository postRepository)
         {
-            return await _postRepository.GetAllPostsAsync();
+            _postRepository = postRepository;
         }
 
-        [HttpGet("id")]
+        [HttpGet]
+        [ProducesResponseType(typeof(IActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetAllPostsAsync()
+        {
+            var posts = await _postRepository.GetAllPostsAsync();
+            return Ok(posts);
+        }
+
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(Post), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<Post> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             Post? post = await _postRepository.GetByIdAsync(id);
-            return post;
+            if (post == null)
+            {
+                return NotFound("Post not found.");
+            }
+            return Ok(post);
         }
 
-        [HttpGet("userid")]
+        [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public List<Post> GetPostsByUserIdAsync (Guid userId) 
+        public async Task<IActionResult> GetPostsByUserIdAsync(Guid userId)
         {
             if (userId == Guid.Empty)
             {
-                return [];
+                return BadRequest("Ogiltigt användar-ID.");
             }
-            List<Post> posts = _postRepository.GetPostsByUserIdAsync(userId).Result ?? [];
-            return posts;
+
+            List<Post> posts = await _postRepository.GetPostsByUserIdAsync(userId);
+            return Ok(posts);
         }
 
+        [Authorize]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> CreatePostAsync(Post post)
+        public async Task<ActionResult> CreatePostAsync([FromBody] Post post)
         {
-            IActionResult result = await _postRepository.CreatePostAsync(post);
-            return (ActionResult)result;
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized("Token invalid or missing.");
+            }
+
+            post.UserId = Guid.Parse(userIdString);
+
+            var result = await _postRepository.CreatePostAsync(post);
+
+            if (result != null)
+            {
+                return CreatedAtAction("GetById", new { id = result.Id }, result);
+            }
+            else
+            {
+                // Returnerar HTTP 400 Bad Request om något gick snett
+                return BadRequest("Post could not be created.");
+            }
         }
 
-        [HttpPut("id")]
+        [Authorize]
+        [HttpPut("{id}")]
         [ProducesResponseType(typeof(Post), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult UpdatePostAsync(Guid id, Post post)
+        public async Task<IActionResult> UpdatePostAsync(Guid id, [FromBody] Post post)
         {
-            if (id == Guid.Empty)
+            if (id == Guid.Empty || id != post.Id)
             {
-                return BadRequest("Post ID is required.");
+                return BadRequest("ID matchar inte inlägget.");
             }
 
-            if (id != post.Id)
-            {
-                return BadRequest("Post ID mismatch.");
-            }
-
-            if (post == null)
-            {
-                return BadRequest("Post data is required.");
-            }
-            Post updatedPost = _postRepository.UpdatePostAsync(post).Result;
+            // 3. Vi använder 'await' istället för '.Result'
+            Post updatedPost = await _postRepository.UpdatePostAsync(post);
             return Ok(updatedPost);
         }
 
-        [HttpDelete("id")]
-        public IActionResult DeletePostAsync(Guid id)
+        [Authorize]
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeletePostAsync(Guid id)
         {
             if (id == Guid.Empty)
             {
                 return BadRequest("Post ID is required.");
             }
-            IActionResult result = _postRepository.DeletePostAsync(new Post { Id = id }).Result;
-            return result;
+            
+            bool result = await _postRepository.DeletePostAsync(new Post { Id = id });
+
+            if (result)
+            {
+                return NoContent();
+            }
+            return BadRequest("Unable to delete post.");
 
         }
     }

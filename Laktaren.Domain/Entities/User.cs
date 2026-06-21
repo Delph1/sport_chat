@@ -1,4 +1,6 @@
-﻿namespace Laktaren.Domain.Entities
+﻿using static System.Collections.Specialized.BitVector32;
+
+namespace Laktaren.Domain.Entities
 {
     public class User
     {
@@ -10,5 +12,6 @@
 
         // Navigation properties
         public ICollection<Post> Posts { get; set; } = new List<Post>();
+        public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
     }
 }

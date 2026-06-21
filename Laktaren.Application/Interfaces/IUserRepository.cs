@@ -5,9 +5,11 @@ namespace Laktaren.Application.Interfaces
 {
     public interface IUserRepository
     {
+        Task<List<User>> GetAllUsersAsync();
         Task<User?> GetByIdAsync(Guid id);
-        Task <IActionResult> CreateUserAsync(User user);
+        Task <User> CreateUserAsync(User user);
         Task <User> UpdateUserAsync(User user);
-        Task <IActionResult> DeleteUserAsync(Guid id);
+        Task <bool> DeleteUserAsync(Guid id);
+        Task<User?> GetByEmailAsync(string email);
     }
 }

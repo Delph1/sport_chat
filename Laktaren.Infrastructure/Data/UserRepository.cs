@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
+// Vi tar bort "using Microsoft.AspNetCore.Mvc;" eftersom det bara hör hemma i API:et!
 
 namespace Laktaren.Infrastructure.Data
 {
@@ -14,16 +14,21 @@ namespace Laktaren.Infrastructure.Data
             _context = context;
         }
 
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
         public async Task<User?> GetByIdAsync(Guid id)
         {
             return await _context.Users.FindAsync(id);
         }
 
-        public async Task<IActionResult> CreateUserAsync(User user)
+        // RÄTTAT: Vi returnerar User istället för IActionResult
+        public async Task<User> CreateUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-            return new CreatedAtActionResult(nameof(GetByIdAsync), "Users", new { id = user.Id }, user);
+            return user;
         }
 
         public async Task<User> UpdateUserAsync(User user)
@@ -33,19 +38,24 @@ namespace Laktaren.Infrastructure.Data
             return user;
         }
 
-        public async Task<IActionResult> DeleteUserAsync(Guid id)
+        // RÄTTAT: Vi returnerar en boolean (true/false) istället för IActionResult
+        public async Task<bool> DeleteUserAsync(Guid id)
         {
             User? user = await _context.Users.FindAsync(id);
             if (user != null)
             {
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
-                return new OkResult();
+                return true; // Lyckad radering
             }
-            else
-            {
-                return new EmptyResult();
-            }
+
+            return false; // Användaren fanns inte
+        }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            // Letar upp den första användaren som matchar e-postadressen
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }
