@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Laktaren.Application.Interfaces;
 using Laktaren.Infrastructure.Data;
 using Neo4j.Driver;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,7 @@ var neo4jPassword = builder.Configuration["Neo4j:Password"];
 builder.Services.AddSingleton<IDriver>(GraphDatabase.Driver(neo4jUri, AuthTokens.Basic(neo4jUsername, neo4jPassword)));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
 
 builder.Services.AddControllers();
 
@@ -33,6 +37,21 @@ builder.Services.AddCors(options =>
         });
 });
 
+var key = Encoding.ASCII.GetBytes("DenHarNyckelnMasteVaraMinst32TeckenLangOchMycketHemlig!!!");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false, // Sätt till true i produktion när du har en riktig domän
+            ValidateAudience = false // Sätt till true i produktion
+        };
+    });
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -44,6 +63,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseCors("AllowSvelteClient");
