@@ -50,3 +50,14 @@ export async function toggleReaction(postId: string) {
         }
     });
 }
+
+export async function loadReplies(postId: string) {
+    try{
+        return await fetch(`${API_BASE_URL}/replies/${postId}`);
+    }
+    catch (error)
+    {
+        console.error("Kunde inte nå backend:", error);
+        return { ok: false }; 
+    }
+}

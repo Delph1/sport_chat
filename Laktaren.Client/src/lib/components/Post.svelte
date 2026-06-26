@@ -1,5 +1,5 @@
 <script>
-    import { toggleReaction, createPost } from '$lib/services/api';
+    import { toggleReaction, createPost, loadReplies } from '$lib/services/api';
     import Post from './Post.svelte';
 
     let { post = $bindable() } = $props();
@@ -8,17 +8,21 @@
 
 
 
-    async function loadReplies() {
+    async function handleReplies() {
         if (showReplies) {
             showReplies = false;
             return;
         }
-
-        const response = await fetch(`/api/posts/${post.id}/replies`);
-        if (response.ok) {
-            const data = await response.json();
-            replies = data;
-            showReplies = true;
+        try{
+            const response = await loadReplies(post.id);
+            if (response.ok) {
+                const data = await response.json();
+                replies = data;
+                showReplies = true;
+            }
+        }
+        catch (error) {
+            console.error(error);
         }
     }
   
@@ -35,8 +39,6 @@
             if (response.ok) {
                 const data = await response.json();
                 
-                // Eftersom post är ett objekt skickat som prop, uppdateras
-                // gränssnittet direkt när vi ändrar dess värden!
                 if (data.liked) {
                     post.likeCount = (post.likeCount || 0) + 1;
                     post.userHasLiked = true; 
