@@ -1,9 +1,9 @@
 <script>
-    import { toggleReaction } from '$lib/services/api';
+    import { toggleReaction, createPost } from '$lib/services/api';
 
     // Svelte 5: Så här tar vi emot data (props) från föräldern
-    let { post } = $props();
-
+    let { post = $bindable() } = $props();
+   
     async function handleReaction() {
         // Enkel koll om vi saknar biljett i webbläsaren
         if (!localStorage.getItem('token')) {
@@ -47,8 +47,13 @@
 
         isSubmitting = true;
         try {
-            // Vi skickar iväg svaret, MED ID:t på inlägget vi svarar på
-            const response = await createPost(replyContent);
+            const newPost = {
+                content: replyContent,
+                parentPostId: post.id 
+            };
+
+            // Vi skickar hela Post-objektet till api.ts
+            const response = await createPost(newPost);
             
             if (response.ok) {
                 replyContent = '';
@@ -80,7 +85,7 @@
         <p class="text-gray-800">{post.content}</p>
     {/if}
     
-    <div class="flex items-center pt-2 border-t border-gray-50">
+    <div class="flex items-center pt-2 border-t border-gray-50 space-x-6">
         <button 
             onclick={handleReaction}
             class="flex items-center space-x-1 group transition-colors {post.userHasLiked ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}"
@@ -127,5 +132,5 @@
             </div>
         </div>
     {/if}
-    
+
 </article>

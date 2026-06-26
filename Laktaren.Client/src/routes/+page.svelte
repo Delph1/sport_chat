@@ -5,25 +5,32 @@
 
     // Svelte 5 Runes för reaktivitet
     let posts = $state([]);
+    let isLoading = $state(true);
     let newPostContent = $state('');
     let errorMessage = $state('');
     let isPosting = $state(false);
     let isLoggedIn = $state(false);
 
-    // Körs automatiskt så fort komponenten laddas i webbläsaren
     onMount(async () => {
-        // Kolla om vi har en biljett sparad
         isLoggedIn = !!localStorage.getItem('token');
         
-        // Hämta det senaste från läktaren
         try {
             const response = await getPosts();
             if (response.ok) {
-                posts = await response.json();
-                posts = posts.reverse(); 
+                const response = await getPosts();
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Datan vi fick:", data);
+                    posts = data.reverse(); 
+                } else {
+                    console.error("Backend sa nej...");
+                }
             }
         } catch (error) {
             console.error("Kunde inte hämta flödet:", error);
+        }
+        finally {
+            isLoading = false;
         }
     });
 
@@ -37,7 +44,8 @@
         try {
             // Vi skickar inlägget till backend
             const response = await createPost({ 
-                content: newPostContent 
+                content: newPostContent,
+                parentPostId: null
             });
 
             if (response.ok) {
@@ -117,14 +125,13 @@
         <hr class="border-gray-300" />
 
         <section class="space-y-4">
-            {#if posts.length === 0}
-                <div class="text-center p-8 bg-white rounded-xl border border-gray-200">
-                    <p class="text-gray-500 font-medium">Inget drag på läktaren ännu.</p>
-                    <p class="text-gray-400 text-sm mt-1">Bli den första att dra igång en ramsa!</p>
-                </div>
+            {#if isLoading}
+                <p>Hämtar senaste vrålen från läktaren...</p>
             {:else}
-                {#each posts as post (post.id)}
-                    <Post {post} />
+                {#each posts as post, i (post.id)}
+                    <Post bind:post={posts[i]} />
+                {:else}
+                    <p>Inga inlägg hittades på läktaren ännu. Var den första att vråla!</p>
                 {/each}
             {/if}
         </section>

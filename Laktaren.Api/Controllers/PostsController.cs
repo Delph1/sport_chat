@@ -69,8 +69,6 @@ namespace Laktaren.Api.Controllers
             }
 
             newPost.UserId = Guid.Parse(userIdString);
-
-            newPost.UserId = userIdString;
             newPost.CreatedAt = DateTime.UtcNow; 
             newPost.ReplyCount = 0; 
             newPost.IsDeleted = false;

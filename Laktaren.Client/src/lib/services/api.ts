@@ -3,11 +3,10 @@ const API_BASE_URL = 'http://localhost:5253/api';
 export async function getPosts() {
     try {
         const response = await fetch(`${API_BASE_URL}/posts`);
-    if (!response.ok) throw new Error('Error when fetching posts');
-    return await response.json();
+        return response; 
     } catch (error) {
-        console.error("Error when fetch posts from the backend.");
-        return [];
+        console.error("Kunde inte nå backend:", error);
+        return { ok: false }; 
     }
 }
 
@@ -27,7 +26,7 @@ export async function loginUser(credentials: any) {
     });
 }
 
-export async function createPost(postData: any) {
+export async function createPost(post: any) {
     const token = localStorage.getItem('token');
 
     return await fetch(`${API_BASE_URL}/posts`, {
@@ -36,7 +35,7 @@ export async function createPost(postData: any) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify(postData)
+        body: JSON.stringify(post)
     });
 }
 
