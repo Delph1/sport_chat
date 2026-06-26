@@ -49,6 +49,15 @@ namespace Laktaren.Infrastructure.Data
 
         public async Task<Post> CreatePostAsync(Post post)
         {
+            if (post.ParentPostId.HasValue)
+            {
+                var parent = await _context.Posts.FindAsync(post.ParentPostId);
+                if (parent != null)
+                {
+                    parent.ReplyCount++; 
+                    await _context.SaveChangesAsync();
+                }
+            }
             await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync();
             return post;
