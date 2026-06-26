@@ -49,6 +49,12 @@ namespace Laktaren.Infrastructure.Data
                 .HasMany(u => u.SecondaryTeams)
                 .WithMany(t => t.Supporters)
                 .UsingEntity(j => j.ToTable("UserSecondaryTeams"));
+
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.ParentPost)
+                .WithMany(p => p.Replies)
+                .HasForeignKey(p => p.ParentPostId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -89,6 +89,13 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdatePostAsync(Guid id, [FromBody] Post post)
         {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized("Token invalid or missing.");
+            }
+
             if (id == Guid.Empty || id != post.Id)
             {
                 return BadRequest("ID matchar inte inlägget.");
@@ -105,6 +112,13 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeletePostAsync(Guid id)
         {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized("Token invalid or missing.");
+            }
+
             if (id == Guid.Empty)
             {
                 return BadRequest("Post ID is required.");

@@ -13,12 +13,14 @@ namespace Laktaren.Infrastructure.Data
         {
             _context = context;
         }
+        //Get all Parent Posts
         public async Task<List<Post>> GetAllPostsAsync()
         {
             return await _context.Posts
                 .Include(p => p.Reactions)
                     .ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
+                .Where(p => p.ParentPostId == null)
                 .ToListAsync();
         }
 
@@ -53,7 +55,8 @@ namespace Laktaren.Infrastructure.Data
         }
         public async Task<bool> DeletePostAsync(Post post)
         {
-            _context.Posts.Remove(post);
+            post.IsDeleted = true;
+
             await _context.SaveChangesAsync();
             return true;
         }
