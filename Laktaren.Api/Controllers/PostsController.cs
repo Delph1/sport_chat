@@ -59,7 +59,7 @@ namespace Laktaren.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> CreatePostAsync([FromBody] Post post)
+        public async Task<ActionResult> CreatePostAsync([FromBody] Post newPost)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -68,9 +68,14 @@ namespace Laktaren.Api.Controllers
                 return Unauthorized("Token invalid or missing.");
             }
 
-            post.UserId = Guid.Parse(userIdString);
+            newPost.UserId = Guid.Parse(userIdString);
 
-            var result = await _postRepository.CreatePostAsync(post);
+            newPost.UserId = userIdString;
+            newPost.CreatedAt = DateTime.UtcNow; 
+            newPost.ReplyCount = 0; 
+            newPost.IsDeleted = false;
+
+            var result = await _postRepository.CreatePostAsync(newPost);
 
             if (result != null)
             {
