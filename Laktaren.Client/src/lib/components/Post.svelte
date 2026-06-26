@@ -1,9 +1,27 @@
 <script>
     import { toggleReaction, createPost } from '$lib/services/api';
+    import Post from './Post.svelte';
 
-    // Svelte 5: Så här tar vi emot data (props) från föräldern
     let { post = $bindable() } = $props();
-   
+    let showReplies = $state(false);
+    let replies = $state([]);
+
+
+
+    async function loadReplies() {
+        if (showReplies) {
+            showReplies = false;
+            return;
+        }
+
+        const response = await fetch(`/api/posts/${post.id}/replies`);
+        if (response.ok) {
+            const data = await response.json();
+            replies = data;
+            showReplies = true;
+        }
+    }
+  
     async function handleReaction() {
         // Enkel koll om vi saknar biljett i webbläsaren
         if (!localStorage.getItem('token')) {
@@ -111,6 +129,17 @@
             </svg>
             <span class="font-medium text-sm">{post.replyCount || 0}</span>
         </button>
+        <button onclick={loadReplies} class="text-sm text-blue-600">
+            {showReplies ? 'Dölj svar' : `Visa ${post.replyCount} svar`}
+        </button>
+
+        {#if showReplies}
+            <div class="ml-8 border-l-2 border-gray-200 pl-4 mt-2">
+                {#each replies as reply, i (reply.id)}
+                    <Post bind:post={replies[i]} />
+                {/each}
+            </div>
+        {/if}
     </div>
 
     {#if showReplyForm}
