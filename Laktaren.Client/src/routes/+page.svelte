@@ -20,7 +20,6 @@
             const response = await getPosts();
             if (response.ok) {
                 posts = await response.json();
-                // Sortera så nyaste inläggen hamnar överst (om inte backend redan gör det)
                 posts = posts.reverse(); 
             }
         } catch (error) {
@@ -44,10 +43,8 @@
             if (response.ok) {
                 const createdPost = await response.json();
                 
-                // Vi lägger till det nyskapade inlägget HÖGST UPP i vår lokala lista!
                 posts = [createdPost, ...posts]; 
                 
-                // Rensa inmatningsfältet
                 newPostContent = ''; 
             } else if (response.status === 401) {
                 errorMessage = 'Din biljett har gått ut. Logga in igen!';
