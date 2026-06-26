@@ -41,7 +41,13 @@
         <span class="text-xs text-gray-500 font-medium">Nyligen</span>
     </div>
     
-    <p class="text-gray-800 leading-relaxed whitespace-pre-wrap mb-4">{post.content}</p>
+    {#if post.isDeleted}
+        <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl italic text-gray-500">
+            [Användaren ångrade sitt inlägg]
+        </div>
+    {:else}
+        <p class="text-gray-800">{post.content}</p>
+    {/if}
     
     <div class="flex items-center pt-2 border-t border-gray-50">
         <button 
