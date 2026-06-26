@@ -29,6 +29,15 @@ namespace Laktaren.Api.Controllers
             return Ok(posts);
         }
 
+        [HttpGet("{id}/replies/")]
+        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetRepliesAsync(Guid postId)
+        {
+            var replies = await _postRepository.GetRepliesAsync(postId);
+            return Ok(replies);
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(Post), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

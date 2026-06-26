@@ -24,6 +24,13 @@ namespace Laktaren.Infrastructure.Data
                 .ToListAsync();
         }
 
+        public async Task<List<Post>> GetRepliesAsync(Guid postId)
+        {
+            return await _context.Posts
+                .Where(p => p.ParentPostId == postId)
+                .OrderBy(p => p.CreatedAt)
+                .ToListAsync();
+        }
         public async Task<Post?> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
