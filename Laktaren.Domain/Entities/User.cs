@@ -1,4 +1,6 @@
-﻿namespace Laktaren.Domain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace Laktaren.Domain.Entities
 {
     public class User
     {
@@ -9,7 +11,9 @@
         public DateTime CreatedAt { get; set; }
         public Guid? TeamId { get; set; } //Favorite team
         public bool UseTeamColors { get; set; }
+        [JsonIgnore]
         public ICollection<Team> SecondaryTeams { get; set; } = new List<Team>();
+        [JsonIgnore]
         public ICollection<Post> Posts { get; set; } = new List<Post>();
         public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
     }
