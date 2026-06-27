@@ -17,5 +17,17 @@ namespace Laktaren.Infrastructure.Data
                             .OrderBy(t => t.Name)
                             .ToListAsync();
         }
+
+        public async Task FollowTeamAsync(Guid userId, Guid teamId)
+        {
+            var user = await _context.Users.Include(u => u.SecondaryTeams).FirstOrDefaultAsync(u => u.Id == userId);
+            var team = await _context.Teams.FindAsync(teamId);
+
+            if (user != null && team != null && !user.SecondaryTeams.Contains(team))
+            {
+                user.SecondaryTeams.Add(team);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

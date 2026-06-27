@@ -1,6 +1,9 @@
-﻿using Laktaren.Domain.Entities;
+﻿using Laktaren.Application.Interfaces;
+using Laktaren.Domain.Entities;
+using Laktaren.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Laktaren.Application.Interfaces;
+using System.Security.Claims;
 
 namespace Laktaren.Api.Controllers
 {
@@ -20,8 +23,22 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllTeamsAsync()
         {
-            var teams = _teamRepository.GetAllTeamsAsync();
+            var teams = await _teamRepository.GetAllTeamsAsync();
             return Ok(teams);
         }
+
+        [Authorize]
+        [HttpPost]
+        [Route("{teamId}/follow")]
+        public async Task<IActionResult> FollowTeamAsync(Guid teamId)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+                return Unauthorized();
+
+            await _teamRepository.FollowTeamAsync(userId, teamId);
+            return Ok(new { Message = "Du följer nu laget" });
+        }
+
     }
 }
