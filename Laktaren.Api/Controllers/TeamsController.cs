@@ -10,7 +10,7 @@ namespace Laktaren.Api.Controllers
     {
         private readonly ITeamRepository _teamRepository;
 
-        TeamsController(ITeamRepository teamRepository)
+        public TeamsController(ITeamRepository teamRepository)
         {
             _teamRepository = teamRepository;
         }
