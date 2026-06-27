@@ -18,6 +18,11 @@ namespace Laktaren.Infrastructure.Data
         {
             return await _context.Users.ToListAsync();
         }
+
+        public async Task<User?> GetMeAsync(Guid userId)
+        {
+            return await _context.Users.FindAsync(userId);
+        }
         public async Task<User?> GetByIdAsync(Guid id)
         {
             return await _context.Users.FindAsync(id);

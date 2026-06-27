@@ -6,6 +6,7 @@ namespace Laktaren.Application.Interfaces
     public interface IUserRepository
     {
         Task<List<User>> GetAllUsersAsync();
+        Task<User?> GetMeAsync(Guid userId);
         Task<User?> GetByIdAsync(Guid id);
         Task <User> CreateUserAsync(User user);
         Task <User> UpdateUserAsync(User user);

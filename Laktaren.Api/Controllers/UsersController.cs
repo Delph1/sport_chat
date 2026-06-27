@@ -34,6 +34,25 @@ namespace Laktaren.Api.Controllers
             return Ok(users);
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("me")]
+        [ProducesResponseType(typeof(User),StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetMeAsync(Guid userId)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid id))
+            {
+                return Unauthorized("Ogiltig biljett. Logga in igen.");
+            }
+
+            var me = await _userRepository.GetMeAsync(userId);
+
+            return Ok(me);
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,6 +95,13 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateUserAsync(Guid id, [FromBody] User user)
         {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Ogiltig biljett. Logga in igen.");
+            }
+
             if (id == Guid.Empty || id != user.Id)
             {
                 return BadRequest("ID matchar inte användaren.");
@@ -91,6 +117,13 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteUserAsync(Guid id)
         {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Ogiltig biljett. Logga in igen.");
+            }
+
             if (id == Guid.Empty)
             {
                 return BadRequest("Användar-ID krävs.");
