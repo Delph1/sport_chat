@@ -61,3 +61,31 @@ export async function loadReplies(postId: string) {
         return { ok: false }; 
     }
 }
+
+export async function getTeams() {
+    try
+    {
+        return await fetch(`${API_BASE_URL}/teams/`);
+    }
+    catch (error)
+    {
+        console.log("Kunde inte hämta lag:", error);
+        return { ok: false }; 
+    }
+}
+
+export async function saveUserPreferences(preferences: { teamId: string, secondaryTeamIds: string[], useTeamColors: boolean }) {
+    try {
+        return await fetch(`${API_BASE_URL}/users/preferences`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(preferences)
+        });
+    } catch (error) {
+        console.error("Kunde inte spara preferenser:", error);
+        return { ok: false };
+    }
+}

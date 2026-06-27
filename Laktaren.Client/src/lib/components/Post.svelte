@@ -6,7 +6,20 @@
     let showReplies = $state(false);
     let replies = $state([]);
 
+    function formatTime(dateString) {
+    if (!dateString || dateString === "0001-01-01T00:00:00") return "Okänt datum";
 
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return "Just nu";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} h`;
+    
+    // För inlägg äldre än ett dygn, visa datum (t.ex. 26 jun)
+    return date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
+}
 
     async function handleReplies(id) {
         if (showReplies) {
@@ -93,8 +106,8 @@
 
 <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
     <div class="flex justify-between items-baseline mb-2 border-b border-gray-100 pb-2">
-        <span class="font-bold text-slate-900">{post.author || 'Anonym Supporter'}</span>
-        <span class="text-xs text-gray-500 font-medium">Nyligen</span>
+        <span class="font-bold text-slate-900">{post.author.username || 'Anonym Supporter'}</span>
+        <span class="text-xs text-gray-500 font-medium">{formatTime(post.createdAt)}</span>
     </div>
     
     {#if post.isDeleted}

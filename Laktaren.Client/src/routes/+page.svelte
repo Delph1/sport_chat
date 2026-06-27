@@ -2,6 +2,9 @@
     import { getPosts, createPost } from '$lib/services/api';
     import { onMount } from 'svelte';
 	import Post from '$lib/components/Post.svelte';
+    import TeamSelectorModal from '$lib/components/TeamSelectorModal.svelte';
+
+    let showTeamModal = $state(false);
 
     // Svelte 5 Runes för reaktivitet
     let posts = $state([]);
@@ -25,6 +28,12 @@
                 } else {
                     console.error("Backend sa nej...");
                 }
+            }
+            
+            if (!user.teamId) {
+                showTeamModal = true;
+            } else {
+                window.location.href = '/';
             }
         } catch (error) {
             console.error("Kunde inte hämta flödet:", error);
@@ -136,4 +145,5 @@
             {/if}
         </section>
     </main>
+    <TeamSelectorModal bind:isOpen={showTeamModal} onSave={() => window.location.href = '/'} />
 </div>
