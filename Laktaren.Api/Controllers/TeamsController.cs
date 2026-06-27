@@ -6,11 +6,11 @@ namespace Laktaren.Api.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class TeamController : ControllerBase
+    public class TeamsController : ControllerBase
     {
         private readonly ITeamRepository _teamRepository;
 
-        TeamController(ITeamRepository teamRepository)
+        TeamsController(ITeamRepository teamRepository)
         {
             _teamRepository = teamRepository;
         }
