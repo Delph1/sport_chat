@@ -29,7 +29,7 @@ namespace Laktaren.Api.Controllers
             return Ok(posts);
         }
 
-        [HttpGet("{id}/replies/")]
+        [HttpGet("{postId}/replies/")]
         [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetRepliesAsync(Guid postId)

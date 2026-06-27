@@ -8,13 +8,13 @@
 
 
 
-    async function handleReplies() {
+    async function handleReplies(id) {
         if (showReplies) {
             showReplies = false;
             return;
         }
         try{
-            const response = await loadReplies(post.id);
+            const response = await loadReplies(id);
             if (response.ok) {
                 const data = await response.json();
                 replies = data;
@@ -131,18 +131,18 @@
             </svg>
             <span class="font-medium text-sm">{post.replyCount || 0}</span>
         </button>
-        <button onclick={loadReplies} class="text-sm text-blue-600">
+        <button onclick={() => handleReplies(post.id)} class="text-sm text-blue-600">
             {showReplies ? 'Dölj svar' : `Visa ${post.replyCount} svar`}
         </button>
+    </div>
 
         {#if showReplies}
-            <div class="ml-8 border-l-2 border-gray-200 pl-4 mt-2">
+            <div class="w-full mt-4 border-l-2 border-gray-200 pl-4 block space-y-4">
                 {#each replies as reply, i (reply.id)}
                     <Post bind:post={replies[i]} />
                 {/each}
             </div>
         {/if}
-    </div>
 
     {#if showReplyForm}
         <div class="mt-4 pt-3 border-t border-gray-100 flex flex-col space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">

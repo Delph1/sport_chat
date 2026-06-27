@@ -53,7 +53,7 @@ export async function toggleReaction(postId: string) {
 
 export async function loadReplies(postId: string) {
     try{
-        return await fetch(`${API_BASE_URL}/replies/${postId}`);
+        return await fetch(`${API_BASE_URL}/posts/${postId}/replies/`);
     }
     catch (error)
     {
