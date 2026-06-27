@@ -29,6 +29,7 @@ namespace Laktaren.Infrastructure.Data
         {
             return await _context.Posts
                 .Where(p => p.ParentPostId == postId)
+                .Include(p => p.Author)
                 .OrderBy(p => p.CreatedAt)
                 .ToListAsync();
         }
