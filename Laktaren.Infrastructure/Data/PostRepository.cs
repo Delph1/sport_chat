@@ -17,8 +17,9 @@ namespace Laktaren.Infrastructure.Data
         public async Task<List<Post>> GetAllPostsAsync()
         {
             return await _context.Posts
+                .Include(p => p.Author)
                 .Include(p => p.Reactions)
-                    .ThenInclude(r => r.Team)
+                .ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
                 .Where(p => p.ParentPostId == null)
                 .ToListAsync();
