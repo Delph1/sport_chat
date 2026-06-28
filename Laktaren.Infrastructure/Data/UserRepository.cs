@@ -60,22 +60,10 @@ namespace Laktaren.Infrastructure.Data
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<bool> SavePreferencesAsync(User updatedUser)
+        public async Task<bool> SavePreferencesAsync(User user)
         {
-            var existingUser = await _context.Users.FindAsync(updatedUser.Id);
-
-            if (existingUser == null)
-            {
-                return false;
-            }
-
-            existingUser.TeamId = updatedUser.TeamId;
-            existingUser.UseTeamColors = updatedUser.UseTeamColors;
-            existingUser.SecondaryTeams = updatedUser.SecondaryTeams;
-
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
+            _context.Users.Update(user);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

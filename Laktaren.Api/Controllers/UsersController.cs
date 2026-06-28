@@ -1,6 +1,7 @@
 ﻿using BCrypt.Net; // Möjliggör lösenordskrypteringen!
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
+using Laktaren.Domain.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -39,11 +40,11 @@ namespace Laktaren.Api.Controllers
         [Route("me")]
         [ProducesResponseType(typeof(User),StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetMeAsync(Guid userId)
+        public async Task<IActionResult> GetMeAsync()
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid id))
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
             {
                 return Unauthorized("Ogiltig biljett. Logga in igen.");
             }
@@ -197,20 +198,28 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> SavePreferencesAsync([FromBody] User request)
+        public async Task<IActionResult> SavePreferencesAsync([FromBody] UserPreferencesDto preferences)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
             {
-                return Unauthorized("Ogiltig biljett. Logga in igen.");
+                return Unauthorized("Ogiltig biljett.");
             }
 
-            var success = await _userRepository.SavePreferencesAsync(request);
+            // Hämta den existerande användaren från databasen
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return NotFound("Användaren hittades inte.");
+
+            // Uppdatera endast preferenserna
+            user.TeamId = preferences.TeamId;
+            user.UseTeamColors = preferences.UseTeamColors;
+
+            // Spara ändringarna
+            var success = await _userRepository.SavePreferencesAsync(user);
 
             if (!success)
             {
-                return BadRequest("Kunde inte spara inställningarna på läktaren.");
+                return BadRequest("Kunde inte spara inställningarna.");
             }
 
             return Ok(new { Message = "Inställningarna är nu sparade!" });
