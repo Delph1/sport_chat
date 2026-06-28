@@ -89,3 +89,18 @@ export async function saveUserPreferences(preferences: { teamId: string, seconda
         return { ok: false };
     }
 }
+
+export async function getMyProfile() {
+    try {
+        return await fetch(`${API_BASE_URL}/users/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (error) {
+        console.error("Kunde inte hämta profil:", error);
+        return { ok: false };
+    }
+}

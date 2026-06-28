@@ -1,12 +1,12 @@
 <script>
-    import { getPosts, createPost } from '$lib/services/api';
+    import { getPosts, createPost, getMyProfile } from '$lib/services/api';
     import { onMount } from 'svelte';
 	import Post from '$lib/components/Post.svelte';
     import TeamSelectorModal from '$lib/components/TeamSelectorModal.svelte';
 
     let showTeamModal = $state(false);
 
-    // Svelte 5 Runes för reaktivitet
+    let user = $state(null);
     let posts = $state([]);
     let isLoading = $state(true);
     let newPostContent = $state('');
@@ -18,23 +18,21 @@
         isLoggedIn = !!localStorage.getItem('token');
         
         try {
-            const response = await getPosts();
-            if (response.ok) {
-                const response = await getPosts();
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("Datan vi fick:", data);
-                    posts = data.reverse(); 
-                } else {
-                    console.error("Backend sa nej...");
+            const [profileRes, postsRes] = await Promise.all([
+                getMyProfile(),
+                getPosts()
+            ]);
+            if (profileRes.ok) {
+                user = await profileRes.json();
+                // Om användaren saknar teamId, visa modalen direkt
+                if (!user.teamId) {
+                    showTeamModal = true;
                 }
             }
-            
-            if (!user.teamId) {
-                showTeamModal = true;
-            } else {
-                window.location.href = '/';
+            if (postsRes.ok) {
+                posts = (await postsRes.json()).reverse();
             }
+                       
         } catch (error) {
             console.error("Kunde inte hämta flödet:", error);
         }
