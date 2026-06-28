@@ -6,7 +6,7 @@
 
     let availableTeams = $state([]);
     let selectedTeamId = $state(""); // Favoritlaget
-    let secondaryTeamIds = $state([]); // Listan med följda lag
+    let secondaryTeams = $state([]); // Listan med följda lag
     let useTeamColors = $state(false);
 
     onMount(async () => {
@@ -18,17 +18,17 @@
 
     // Hanterar toggling av sekundära lag
     function toggleSecondaryTeam(teamId) {
-        if (secondaryTeamIds.includes(teamId)) {
-            secondaryTeamIds = secondaryTeamIds.filter(id => id !== teamId);
+        if (secondaryTeams.includes(teamId)) {
+            secondaryTeams = secondaryTeams.filter(id => id !== teamId);
         } else {
-            secondaryTeamIds = [...secondaryTeamIds, teamId];
+            secondaryTeams = [...secondaryTeams, teamId];
         }
     }
 
     async function handleSave() {
         const response = await saveUserPreferences({
             teamId: selectedTeamId,
-            secondaryTeamIds: secondaryTeamIds,
+            secondaryTeams: secondaryTeams,
             useTeamColors: useTeamColors
         });
 
@@ -46,8 +46,8 @@
             
             <select bind:value={selectedTeamId} class="w-full p-2 border rounded mb-4">
                 <option value="">Välj lag...</option>
-                {#each availableTeams as team, i (team.id)}
-                    <option value={i}>{team.name}</option>
+                {#each availableTeams as team (team.id)}
+                    <option value={team.id}>{team.name}</option>
                 {/each}
             </select>
 
@@ -57,13 +57,13 @@
             </label>
             <h3 class="text-lg font-bold mt-4">Följ även dessa lag:</h3>
             <div class="grid grid-cols-2 gap-2 mt-2">
-                {#each availableTeams as team, i (team.id)}
+                {#each availableTeams as team (team.id)}
                     <label class="flex items-center space-x-2">
                         <input 
                             type="checkbox" 
                             value={team.id} 
-                            checked={secondaryTeamIds.includes(i)}
-                            onchange={() => toggleSecondaryTeam(i)}
+                            checked={secondaryTeams.includes(team.id)}
+                            onchange={() => toggleSecondaryTeam(team.id)}
                         />
                         <span>{team.name}</span>
                     </label>

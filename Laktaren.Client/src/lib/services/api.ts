@@ -74,7 +74,7 @@ export async function getTeams() {
     }
 }
 
-export async function saveUserPreferences(preferences: { teamId: string, secondaryTeamIds: string[], useTeamColors: boolean }) {
+export async function saveUserPreferences(preferences: { teamId: string, useTeamColors: boolean, secondaryTeams: string[] }) {
     try {
         return await fetch(`${API_BASE_URL}/users/preferences`, {
             method: 'PUT',
