@@ -126,6 +126,10 @@ namespace Laktaren.Api.Controllers
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            Post? post = await _postRepository.GetByIdAsync(id);
+            if (Guid.Parse(userIdString) != post.UserId) {
+                return Unauthorized("You are not authorized to delete this post.");
+}
             if (string.IsNullOrEmpty(userIdString))
             {
                 return Unauthorized("Token invalid or missing.");
@@ -136,11 +140,11 @@ namespace Laktaren.Api.Controllers
                 return BadRequest("Post ID is required.");
             }
             
-            bool result = await _postRepository.DeletePostAsync(new Post { Id = id });
+            Post? updatedPost = await _postRepository.DeletePostAsync(id);
 
-            if (result)
+            if (updatedPost != null)
             {
-                return NoContent();
+                return Ok(updatedPost);
             }
             return BadRequest("Unable to delete post.");
 

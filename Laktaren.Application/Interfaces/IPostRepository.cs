@@ -12,6 +12,6 @@ namespace Laktaren.Application.Interfaces
         Task<List<Post>> GetPostsByUserIdAsync(Guid userId);
         Task<Post> CreatePostAsync(Post post);
         Task<Post> UpdatePostAsync(Post post);
-        Task<bool> DeletePostAsync(Post post);
+        Task<Post> DeletePostAsync(Guid id);
     }
 }

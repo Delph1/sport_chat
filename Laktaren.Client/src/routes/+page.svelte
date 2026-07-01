@@ -1,5 +1,5 @@
 <script>
-    import { getPosts, createPost, getMyProfile } from '$lib/services/api';
+    import { getPosts, createPost, getMyProfile, deletePost } from '$lib/services/api';
     import { onMount } from 'svelte';
 	import Post from '$lib/components/Post.svelte';
     import TeamSelectorModal from '$lib/components/TeamSelectorModal.svelte';
@@ -74,6 +74,18 @@
         }
     }
     
+    async function handleDeleted(id) {
+        const updatedPost = await deletePost(id);
+        
+        if (updatedPost) {
+            // Hitta inlägget i listan och uppdatera det
+            const index = posts.findIndex(p => p.id === id);
+            if (index !== -1) {
+                posts[index] = updatedPost;
+            }
+        }
+    }
+
     function handleLogout() {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
@@ -136,7 +148,7 @@
                 <p>Hämtar senaste vrålen från läktaren...</p>
             {:else}
                 {#each posts as post, i (post.id)}
-                    <Post bind:post={posts[i]} />
+                    <Post bind:post={posts[i] } onDelete={handleDeleted} />
                 {:else}
                     <p>Inga inlägg hittades på läktaren ännu. Var den första att vråla!</p>
                 {/each}

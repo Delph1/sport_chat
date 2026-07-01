@@ -71,12 +71,20 @@ namespace Laktaren.Infrastructure.Data
             await _context.SaveChangesAsync();
             return post;
         }
-        public async Task<bool> DeletePostAsync(Post post)
-        {
+
+        public async Task<Post?> DeletePostAsync(Guid id)
+{
+            var post = await _context.Posts
+            .Include(p => p.Author)
+            .FirstOrDefaultAsync(p => p.Id == id);
+            
+            if (post == null) return null;
+
             post.IsDeleted = true;
 
             await _context.SaveChangesAsync();
-            return true;
+
+            return post;
         }
 
         public async Task<Post> UpdatePostAsync(Post post)

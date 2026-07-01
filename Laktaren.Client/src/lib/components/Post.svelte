@@ -2,7 +2,7 @@
     import { toggleReaction, createPost, loadReplies } from '$lib/services/api';
     import Post from './Post.svelte';
 
-    let { post = $bindable() } = $props();
+    let { post = $bindable(), onDelete } = $props();
     let showReplies = $state(false);
     let replies = $state([]);
 
@@ -67,6 +67,11 @@
         }
     }
 
+    async function handleDelete() {
+        if (!confirm("Är du säker på att du vill radera detta inlägg?")) return;
+        onDelete?.(post.id); 
+    }
+
     let showReplyForm = $state(false); 
     let replyContent = $state('');
     let isSubmitting = $state(false);
@@ -106,7 +111,13 @@
 
 <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
     <div class="flex justify-between items-baseline mb-2 border-b border-gray-100 pb-2">
-        <span class="font-bold text-slate-900">{post.author.username || 'Anonym Supporter'}</span>
+        <span class="font-bold text-slate-900">
+            {#if post.isDeleted}
+                Anonym Supporter
+            {:else}
+                {post.author.username || 'Anonym Supporter'}
+            {/if}
+        </span>
         <span class="text-xs text-gray-500 font-medium">{formatTime(post.createdAt)}</span>
     </div>
     
@@ -147,12 +158,15 @@
         <button onclick={() => handleReplies(post.id)} class="text-sm text-blue-600">
             {showReplies ? 'Dölj svar' : `Visa ${post.replyCount} svar`}
         </button>
+        <button onclick={handleDelete} class="text-red-500 text-sm hover:underline">
+            Radera
+        </button>
     </div>
 
         {#if showReplies}
             <div class="w-full mt-4 border-l-2 border-gray-200 pl-4 block space-y-4">
                 {#each replies as reply, i (reply.id)}
-                    <Post bind:post={replies[i]} />
+                    <Post bind:post={replies[i]} onDelete={handleDelete} />
                 {/each}
             </div>
         {/if}
