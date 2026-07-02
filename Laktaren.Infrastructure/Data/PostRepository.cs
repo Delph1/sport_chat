@@ -41,6 +41,7 @@ namespace Laktaren.Infrastructure.Data
             }
 
             return await _context.Posts
+                .Include(p => p.Author)
                 .Include(p => p.Reactions)
                     .ThenInclude(r => r.Team)
                 .FirstOrDefaultAsync(p => p.Id == id);
