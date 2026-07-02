@@ -1,25 +1,25 @@
 <script>
-    import { toggleReaction, createPost, loadReplies } from '$lib/services/api';
+    import { toggleReaction, createPost, loadReplies, deletePost, getPostById } from '$lib/services/api';
     import Post from './Post.svelte';
 
-    let { post = $bindable(), onDelete } = $props();
+    let { post = $bindable()} = $props();
     let showReplies = $state(false);
     let replies = $state([]);
 
     function formatTime(dateString) {
-    if (!dateString || dateString === "0001-01-01T00:00:00") return "Okänt datum";
+        if (!dateString || dateString === "0001-01-01T00:00:00") return "Okänt datum";
 
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
 
-    if (diffInSeconds < 60) return "Just nu";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} h`;
-    
-    // För inlägg äldre än ett dygn, visa datum (t.ex. 26 jun)
-    return date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
-}
+        if (diffInSeconds < 60) return "Just nu";
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} h`;
+        
+        // För inlägg äldre än ett dygn, visa datum (t.ex. 26 jun)
+        return date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
+    }
 
     async function handleReplies(id) {
         if (showReplies) {
@@ -40,7 +40,6 @@
     }
   
     async function handleReaction() {
-        // Enkel koll om vi saknar biljett i webbläsaren
         if (!localStorage.getItem('token')) {
             alert("Du måste stå på läktaren (vara inloggad) för att kunna jubla!");
             return;
@@ -69,7 +68,15 @@
 
     async function handleDelete() {
         if (!confirm("Är du säker på att du vill radera detta inlägg?")) return;
-        onDelete?.(post.id); 
+
+        // Vi anropar API:et direkt från komponenten
+        const result = await deletePost(post.id);
+        
+        if (result && result.id) {
+            post = result; 
+        } else {
+            alert("Det gick inte att radera inlägget.");
+        }
     }
 
     let showReplyForm = $state(false); 
@@ -90,16 +97,20 @@
                 parentPostId: post.id 
             };
 
-            // Vi skickar hela Post-objektet till api.ts
             const response = await createPost(newPost);
-            
+
             if (response.ok) {
+                const addedReply = await response.json();
+                
+                replies = [...replies, addedReply];
+                
+                showReplies = true; 
+                
                 replyContent = '';
                 showReplyForm = false;
-                
                 post.replyCount = (post.replyCount || 0) + 1;
             } else {
-                alert("Det gick inte att skicka svaret. Domaren kan ha blåst av spelet.");
+                alert("Det gick inte att skicka svaret.");
             }
         } catch (error) {
             console.error(error);
@@ -158,15 +169,17 @@
         <button onclick={() => handleReplies(post.id)} class="text-sm text-blue-600">
             {showReplies ? 'Dölj svar' : `Visa ${post.replyCount} svar`}
         </button>
-        <button onclick={handleDelete} class="text-red-500 text-sm hover:underline">
-            Radera
+        <button onclick={handleDelete} class="ml-auto text-gray-400 hover:text-red-600 transition-colors p-1" title="Radera inlägg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
         </button>
     </div>
 
         {#if showReplies}
             <div class="w-full mt-4 border-l-2 border-gray-200 pl-4 block space-y-4">
                 {#each replies as reply, i (reply.id)}
-                    <Post bind:post={replies[i]} onDelete={handleDelete} />
+                    <Post bind:post={replies[i]} />
                 {/each}
             </div>
         {/if}

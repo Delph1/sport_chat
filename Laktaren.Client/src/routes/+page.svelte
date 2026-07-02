@@ -1,5 +1,5 @@
 <script>
-    import { getPosts, createPost, getMyProfile, deletePost } from '$lib/services/api';
+    import { getPosts, getPostsForUserId, createPost, getMyProfile } from '$lib/services/api';
     import { onMount } from 'svelte';
 	import Post from '$lib/components/Post.svelte';
     import TeamSelectorModal from '$lib/components/TeamSelectorModal.svelte';
@@ -18,25 +18,26 @@
         isLoggedIn = !!localStorage.getItem('token');
         
         try {
-            const [profileRes, postsRes] = await Promise.all([
-                getMyProfile(),
-                getPosts()
-            ]);
-            if (profileRes.ok) {
-                user = await profileRes.json();
-                // Om användaren saknar teamId, visa modalen direkt
-                if (!user.teamId) {
-                    showTeamModal = true;
+            let postsRes;
+
+            if (isLoggedIn) {
+                const profileRes = await getMyProfile();
+                if (profileRes.ok) {
+                    user = await profileRes.json();
+                    if (!user.teamId) showTeamModal = true;
                 }
+                
+                postsRes = await getPostsForUserId(user.id);
+            } else {
+                postsRes = await getPosts();
             }
+            
             if (postsRes.ok) {
-                posts = (await postsRes.json()).reverse();
+                posts = await postsRes.json();
             }
-                       
         } catch (error) {
             console.error("Kunde inte hämta flödet:", error);
-        }
-        finally {
+        } finally {
             isLoading = false;
         }
     });
@@ -71,18 +72,6 @@
             errorMessage = 'Tekniskt fel i kommunikationen med arenan.';
         } finally {
             isPosting = false;
-        }
-    }
-    
-    async function handleDeleted(id) {
-        const updatedPost = await deletePost(id);
-        
-        if (updatedPost) {
-            // Hitta inlägget i listan och uppdatera det
-            const index = posts.findIndex(p => p.id === id);
-            if (index !== -1) {
-                posts[index] = updatedPost;
-            }
         }
     }
 
@@ -148,7 +137,7 @@
                 <p>Hämtar senaste vrålen från läktaren...</p>
             {:else}
                 {#each posts as post, i (post.id)}
-                    <Post bind:post={posts[i] } onDelete={handleDeleted} />
+                    <Post bind:post={posts[i] } />
                 {:else}
                     <p>Inga inlägg hittades på läktaren ännu. Var den första att vråla!</p>
                 {/each}

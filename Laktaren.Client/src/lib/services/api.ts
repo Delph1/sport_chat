@@ -11,6 +11,36 @@ export async function getPosts() {
     }
 }
 
+export async function getPostsForUserId(userId: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/for-user/${userId}`);
+        return response;
+    } catch (error) {
+        console.error("Kunde inte nå backend:", error);
+        return { ok: false };
+    }
+}
+
+export async function getPostsByUserId(userId: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/by-user/${userId}`);
+        return response;
+    } catch (error) {
+        console.error("Kunde inte nå backend:", error);
+        return { ok: false };
+    }
+}
+
+export async function getPostById(postId: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
+        return response;
+    } catch (error) {
+        console.error("Kunde inte nå backend:", error);
+        return { ok: false };
+    }
+}
+
 export async function deletePost(postId: string) {
     const token = localStorage.getItem('token');
 
