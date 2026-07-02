@@ -12,6 +12,8 @@ namespace Laktaren.Domain.Entities
         public User? Author { get; set; }
         public int ReplyCount { get; set; }
         public Guid? ParentPostId { get; set; }
+        public bool IsClubHouseOnly { get; set; } = false;
+        public Guid? TargetTeamId { get; set; }
         [JsonIgnore]
         public Post? ParentPost { get; set; }
         [JsonIgnore]

@@ -29,6 +29,21 @@ namespace Laktaren.Api.Controllers
             return Ok(posts);
         }
 
+        [Authorize]
+        [HttpGet("for-user/{userId}")]
+        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetPostsForUserIdAsync(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest("Ogiltigt användar-ID.");
+            }
+
+            List<Post> posts = await _postRepository.GetPostsForUserIdAsync(userId);
+            return Ok(posts);
+        }
+
         [HttpGet("{postId}/replies/")]
         [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -51,8 +66,9 @@ namespace Laktaren.Api.Controllers
             return Ok(post);
         }
 
-        [HttpGet("user/{userId}")]
+        [HttpGet("by-user/{userId}")]
         [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPostsByUserIdAsync(Guid userId)
         {
             if (userId == Guid.Empty)

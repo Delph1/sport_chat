@@ -18,10 +18,21 @@ namespace Laktaren.Infrastructure.Data
         {
             return await _context.Posts
                 .Include(p => p.Author)
-                .Include(p => p.Reactions)
-                .ThenInclude(r => r.Team)
+                .Include(p => p.Reactions).ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
-                .Where(p => p.ParentPostId == null)
+                .Where(p => p.ParentPostId == null && !p.IsClubHouseOnly)
+                .ToListAsync();
+        }
+
+        public async Task<List<Post>> GetPostsForUserIdAsync(Guid userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return await _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Reactions).ThenInclude(r => r.Team)
+                .OrderByDescending(p => p.CreatedAt)
+                .Where(p => p.ParentPostId == null && 
+                    (!p.IsClubHouseOnly || (p.IsClubHouseOnly && p.TargetTeamId == user.teamId)))
                 .ToListAsync();
         }
 
@@ -70,7 +81,13 @@ namespace Laktaren.Infrastructure.Data
             }
             await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync();
-            return post;
+
+
+            return await _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Reactions)
+                    .ThenInclude(r => r.Team)
+                .FirstOrDefaultAsync(p => p.Id == post.Id);
         }
 
         public async Task<Post?> DeletePostAsync(Guid id)
