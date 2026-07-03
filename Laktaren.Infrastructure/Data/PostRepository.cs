@@ -32,7 +32,7 @@ namespace Laktaren.Infrastructure.Data
                 .Include(p => p.Reactions).ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
                 .Where(p => p.ParentPostId == null && 
-                    (!p.IsClubHouseOnly || (p.IsClubHouseOnly && p.TargetTeamId == user.teamId)))
+                    (!p.IsClubHouseOnly || (p.IsClubHouseOnly && p.TargetTeamId == user.TeamId)))
                 .ToListAsync();
         }
 
