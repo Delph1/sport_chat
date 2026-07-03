@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
-// OBS: Ingen "using Laktaren.Infrastructure.Data" här!
+using Laktaren.Domain.Enums;
 
 namespace Laktaren.Api.Controllers
 {
@@ -37,7 +37,7 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> ToggleReactionAsync(Guid postId)
+        public async Task<IActionResult> ToggleReactionAsync(Guid postId, ReactionType reactionType)
         {
             if (postId == Guid.Empty)
             {
@@ -54,7 +54,8 @@ namespace Laktaren.Api.Controllers
             var reaction = new Reaction
             {
                 PostId = postId,
-                UserId = userId
+                UserId = userId,
+                Type = reactionType
             };
 
             bool isLiked = await _reactionRepository.ToggleReactionAsync(reaction);

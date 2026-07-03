@@ -1,9 +1,10 @@
-﻿using Laktaren.Domain.Entities;
+﻿using Laktaren.Domain.Enums;
+using Laktaren.Domain.Entities;
 
 public class Reaction
 {
     public int Id { get; set; }
-    public bool IsLike { get; set; }
+    public ReactionType Type { get; set; }
     public Guid PostId { get; set; }
     public Post? Post { get; set; } = null!;
     public Guid UserId { get; set; }
