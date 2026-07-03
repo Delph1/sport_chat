@@ -12,8 +12,13 @@ export async function getPosts() {
 }
 
 export async function getPostsForUserId(userId: string) {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${API_BASE_URL}/posts/for-user/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/posts/for-user/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         return response;
     } catch (error) {
         console.error("Kunde inte nå backend:", error);

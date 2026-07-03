@@ -13,6 +13,7 @@
     let errorMessage = $state('');
     let isPosting = $state(false);
     let isLoggedIn = $state(false);
+    let isClubHouseOnly = $state(false);
 
     onMount(async () => {
         isLoggedIn = !!localStorage.getItem('token');
@@ -111,14 +112,23 @@
                     {#if errorMessage}
                         <p class="text-red-600 text-sm mt-2 font-medium">{errorMessage}</p>
                     {/if}
+                    <div class="flex items-center justify-between mt-2">
+                        <label class="flex items-center cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" bind:checked={isClubHouseOnly} class="sr-only peer" />
+                                <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
+                            </div>
+                            <span class="ml-3 text-sm font-medium text-slate-700">
+                                {isClubHouseOnly ? 'Endast mitt lag' : 'Alla supportrar'}
+                            </span>
+                        </label>
 
-                    <div class="flex justify-end mt-3">
                         <button type="submit" disabled={isPosting || !newPostContent.trim()} 
                             class="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-800 transition-colors disabled:opacity-50">
                             {isPosting ? 'Vrålar...' : 'Vråla'}
                         </button>
                     </div>
-                </form>
+        </form>
             </section>
         {:else}
             <section class="bg-slate-200 p-6 rounded-xl text-center border border-slate-300">
