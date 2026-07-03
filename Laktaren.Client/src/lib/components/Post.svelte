@@ -1,10 +1,11 @@
 <script>
-    import { toggleReaction, createPost, loadReplies, deletePost, getPostById } from '$lib/services/api';
+    import { toggleReaction, createPost, loadReplies, deletePost, } from '$lib/services/api';
     import Post from './Post.svelte';
 
     let { post = $bindable()} = $props();
     let showReplies = $state(false);
     let replies = $state([]);
+    let activeReaction = $state(post.userReactionType);
 
     function formatTime(dateString) {
         if (!dateString || dateString === "0001-01-01T00:00:00") return "Okänt datum";
@@ -39,30 +40,23 @@
         }
     }
   
-    async function handleReaction() {
+    async function handleReaction(type) {
         if (!localStorage.getItem('token')) {
             alert("Du måste stå på läktaren (vara inloggad) för att kunna jubla!");
             return;
         }
 
         try {
-            const response = await toggleReaction(post.id);
-            
+            const response = await toggleReaction(post.id, type);
             if (response.ok) {
                 const data = await response.json();
-                
-                if (data.liked) {
-                    post.likeCount = (post.likeCount || 0) + 1;
-                    post.userHasLiked = true; 
-                } else {
-                    post.likeCount = Math.max(0, (post.likeCount || 1) - 1);
-                    post.userHasLiked = false;
-                }
-            } else if (response.status === 401) {
-                alert("Din biljett har gått ut, logga in igen via menyn.");
-            }
-        } catch (error) {
-            console.error("Det gick inte att nå domaren:", error);
+                // Backend returnerar den nya statusen
+                activeReaction = data.reactionType; 
+                post.likeCount = data.likeCount;
+                post.booCount = data.booCount;
+        }
+            } catch (error) {
+            console.error("Domaren blåser av:", error);
         }
     }
 
@@ -142,25 +136,20 @@
     
     <div class="flex items-center pt-2 border-t border-gray-50 space-x-6">
         <button 
-            onclick={handleReaction}
-            class="flex items-center space-x-1 group transition-colors {post.userHasLiked ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" 
-                 class="h-5 w-5 transition-transform group-hover:scale-110 {post.userHasLiked ? 'fill-current' : 'fill-none'}" 
-                 viewBox="0 0 24 24" 
-                 stroke="currentColor" 
-                 stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <span class="font-medium text-sm">
-                {post.likeCount || 0}
-            </span>
+            onclick={() => handleReaction('Like')}
+            class="flex items-center transition-colors {activeReaction === 'Like' ? 'text-green-600' : 'text-gray-500 hover:text-green-500'}">
+            <span>Jubel ({post.likeCount})</span>
+        </button>
+
+        <button 
+            onclick={() => handleReaction('Boo')}
+            class="flex items-center transition-colors {activeReaction === 'Boo' ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}">
+            <span>Buu ({post.booCount})</span>
         </button>
 
         <button 
             onclick={() => showReplyForm = !showReplyForm} 
-            class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors group"
-        >
+            class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>

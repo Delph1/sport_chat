@@ -81,10 +81,10 @@ export async function createPost(post: any) {
     });
 }
 
-export async function toggleReaction(postId: string) {
+export async function toggleReaction(postId: string, type: string) {
     const token = localStorage.getItem('token');
 
-    return await fetch(`${API_BASE_URL}/reactions/${postId}`, {
+    return await fetch(`${API_BASE_URL}/reactions/post=${postId}&type=${type}`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
