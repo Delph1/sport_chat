@@ -2,6 +2,7 @@
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
 using Laktaren.Domain.Enums;
+using Laktaren.Domain.Contracts;
 
 namespace Laktaren.Infrastructure.Data
 {
@@ -14,7 +15,7 @@ namespace Laktaren.Infrastructure.Data
             _context = context;
         }
 
-        public async Task<ReactionDto> GetReactionsByPostIdAsync(Guid postId)
+        public async Task<ReactionsDto> GetReactionsByPostIdAsync(Guid postId)
         {
             var reactions = await _context.Reactions
                 .Include(r => r.User)
@@ -22,7 +23,7 @@ namespace Laktaren.Infrastructure.Data
                 .Where(r => r.PostId == postId)
                 .ToListAsync();
 
-            return new ReactionStatsDto
+            return new ReactionsDto
             {
                 LikeCount = reactions.Count(r => r.Type == ReactionType.Like),
                 BooCount = reactions.Count(r => r.Type == ReactionType.Boo),
@@ -37,7 +38,7 @@ namespace Laktaren.Infrastructure.Data
             };
         }
 
-        public async Task<ReactionDto> ToggleReactionAsync(Reaction reaction)
+        public async Task<ReactionsDto> ToggleReactionAsync(Reaction reaction)
         {
             var existingReaction = await _context.Reactions
                 .FirstOrDefaultAsync(r => r.UserId == reaction.UserId && r.PostId == reaction.PostId);
@@ -46,22 +47,20 @@ namespace Laktaren.Infrastructure.Data
             {
                 _context.Reactions.Remove(existingReaction);
                 await _context.SaveChangesAsync();
-                return false;
             }
             else
             {
                 await _context.Reactions.AddAsync(reaction);
                 await _context.SaveChangesAsync();
-                return true; 
             }
 
             var reactions = await _context.Reactions
                 .Include(r => r.User)
                     .ThenInclude(u => u.FavoriteTeam) // Nu kommer vi åt Team-namnet!
-                .Where(r => r.PostId == postId)
+                .Where(r => r.PostId == reaction.PostId)
                 .ToListAsync();
 
-            return new ReactionStatsDto
+            return new ReactionsDto
             {
                 LikeCount = reactions.Count(r => r.Type == ReactionType.Like),
                 BooCount = reactions.Count(r => r.Type == ReactionType.Boo),

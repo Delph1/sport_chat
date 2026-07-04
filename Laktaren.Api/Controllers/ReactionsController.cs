@@ -20,7 +20,7 @@ namespace Laktaren.Api.Controllers
         }
 
         [HttpGet("{postId}")]
-        [ProducesResponseType(typeof(ReactionStatsDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ReactionsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetReactionsByPostIdAsync(Guid postId)
         {
@@ -35,7 +35,7 @@ namespace Laktaren.Api.Controllers
 
         [Authorize]
         [HttpPost("{postId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ReactionsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
