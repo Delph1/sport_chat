@@ -9,8 +9,12 @@ namespace Laktaren.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public required string Password { get; set; }
         public DateTime CreatedAt { get; set; }
+        
         public Guid? TeamId { get; set; } //Favorite team
+        [ForeignKey(nameof(TeamId))]
+        public Team? FavoriteTeam { get; set; }        
         public bool UseTeamColors { get; set; }
+        
         [JsonIgnore]
         public ICollection<Team> SecondaryTeams { get; set; } = new List<Team>();
         [JsonIgnore]

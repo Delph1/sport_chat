@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore; // Krävs för .ToListAsync() och .FirstOrDefaultAsync()
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
+using Laktaren.Domain.Enums;
 
 namespace Laktaren.Infrastructure.Data
 {
@@ -13,14 +14,30 @@ namespace Laktaren.Infrastructure.Data
             _context = context;
         }
 
-        public async Task<List<Reaction>> GetReactionsByPostIdAsync(Guid postId)
+        public async Task<ReactionDto> GetReactionsByPostIdAsync(Guid postId)
         {
-            return await _context.Reactions
+            var reactions = await _context.Reactions
+                .Include(r => r.User)
+                    .ThenInclude(u => u.FavoriteTeam) // Nu kommer vi åt Team-namnet!
                 .Where(r => r.PostId == postId)
                 .ToListAsync();
+
+            return new ReactionStatsDto
+            {
+                LikeCount = reactions.Count(r => r.Type == ReactionType.Like),
+                BooCount = reactions.Count(r => r.Type == ReactionType.Boo),
+                LikesPerTeam = reactions
+                    .Where(r => r.Type == ReactionType.Like && r.User.FavoriteTeam != null)
+                    .GroupBy(r => r.User.FavoriteTeam!.Name) // Här har vi nu namnet
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                BoosPerTeam = reactions
+                    .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
+                    .GroupBy(r => r.User.FavoriteTeam!.Name)
+                    .ToDictionary(g => g.Key, g => g.Count())
+            };
         }
 
-        public async Task<bool> ToggleReactionAsync(Reaction reaction)
+        public async Task<ReactionDto> ToggleReactionAsync(Reaction reaction)
         {
             var existingReaction = await _context.Reactions
                 .FirstOrDefaultAsync(r => r.UserId == reaction.UserId && r.PostId == reaction.PostId);
@@ -37,6 +54,26 @@ namespace Laktaren.Infrastructure.Data
                 await _context.SaveChangesAsync();
                 return true; 
             }
+
+            var reactions = await _context.Reactions
+                .Include(r => r.User)
+                    .ThenInclude(u => u.FavoriteTeam) // Nu kommer vi åt Team-namnet!
+                .Where(r => r.PostId == postId)
+                .ToListAsync();
+
+            return new ReactionStatsDto
+            {
+                LikeCount = reactions.Count(r => r.Type == ReactionType.Like),
+                BooCount = reactions.Count(r => r.Type == ReactionType.Boo),
+                LikesPerTeam = reactions
+                    .Where(r => r.Type == ReactionType.Like && r.User.FavoriteTeam != null)
+                    .GroupBy(r => r.User.FavoriteTeam!.Name) // Här har vi nu namnet
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                BoosPerTeam = reactions
+                    .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
+                    .GroupBy(r => r.User.FavoriteTeam!.Name)
+                    .ToDictionary(g => g.Key, g => g.Count())
+            };
         }
     }
 }

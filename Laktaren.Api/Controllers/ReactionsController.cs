@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Laktaren.Application.Interfaces;
 using Laktaren.Domain.Entities;
 using Laktaren.Domain.Enums;
+using Laktaren.Domain.Contracts;
 
 namespace Laktaren.Api.Controllers
 {
@@ -19,7 +20,7 @@ namespace Laktaren.Api.Controllers
         }
 
         [HttpGet("{postId}")]
-        [ProducesResponseType(typeof(List<Reaction>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ReactionStatsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetReactionsByPostIdAsync(Guid postId)
         {
@@ -37,6 +38,7 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ToggleReactionAsync(Guid postId, ReactionType reactionType)
         {
             if (postId == Guid.Empty)
@@ -58,15 +60,15 @@ namespace Laktaren.Api.Controllers
                 Type = reactionType
             };
 
-            bool isLiked = await _reactionRepository.ToggleReactionAsync(reaction);
+            var reactions = await _reactionRepository.ToggleReactionAsync(reaction);
 
-            if (isLiked)
+            if (reactions != null)
             {
-                return Ok(new { Message = "Du jublade åt inlägget!", Liked = true });
+                return Ok(reactions);
             }
             else
             {
-                return Ok(new { Message = "Du tog tillbaka ditt jubel.", Liked = false });
+                return NotFound("Reaktionen kunde inte hittas eller togs bort.");
             }
         }
     }
