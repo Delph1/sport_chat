@@ -135,34 +135,36 @@
     {/if}
     
     <div class="flex items-center pt-2 border-t border-gray-50 space-x-6">
+        {#if !post.isDeleted}
         <button 
             onclick={() => handleReaction('Like')}
             class="flex items-center transition-colors {activeReaction === 'Like' ? 'text-green-600' : 'text-gray-500 hover:text-green-500'}">
-            <span>Jubel ({post.likeCount})</span>
+            <span>Jubel ({post.likeCount || 0})</span>
         </button>
 
         <button 
             onclick={() => handleReaction('Boo')}
             class="flex items-center transition-colors {activeReaction === 'Boo' ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}">
-            <span>Buu ({post.booCount})</span>
+            <span>Buu ({post.booCount || 0})</span>
         </button>
-
         <button 
-            onclick={() => showReplyForm = !showReplyForm} 
+            onclick={() => showReplyForm = !showReplyForm} aria-label="Svara på inlägg"
             class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span class="font-medium text-sm">{post.replyCount || 0}</span>
         </button>
+        {/if}
         <button onclick={() => handleReplies(post.id)} class="text-sm text-blue-600">
             {showReplies ? 'Dölj svar' : `Visa ${post.replyCount} svar`}
         </button>
+        {#if !post.isDeleted}
         <button onclick={handleDelete} class="ml-auto text-gray-400 hover:text-red-600 transition-colors p-1" title="Radera inlägg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
         </button>
+        {/if}
     </div>
 
         {#if showReplies}
