@@ -20,6 +20,7 @@ namespace Laktaren.Domain.Entities
         public ICollection<Team> SecondaryTeams { get; set; } = new List<Team>();
         [JsonIgnore]
         public ICollection<Post> Posts { get; set; } = new List<Post>();
+        [JsonIgnore]
         public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
     }
 }

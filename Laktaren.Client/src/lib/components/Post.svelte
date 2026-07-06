@@ -5,7 +5,25 @@
     let { post = $bindable()} = $props();
     let showReplies = $state(false);
     let replies = $state([]);
-    let activeReaction = $state(post.userReactionType);
+
+    let computedLikeCount = $state(0);
+    let computedBooCount = $state(0);
+    let computedActiveReaction = $state(null);
+
+    // Reactive effect to compute reaction counts and user's active reaction
+    $effect(() => {
+        if (post && post.Reactions) {
+            computedLikeCount = post.Reactions.filter(r => r.Type === 'Like').length;
+            computedBooCount = post.Reactions.filter(r => r.Type === 'Boo').length;
+            const userId = localStorage.getItem('userId');
+            const userReaction = post.Reactions.find(r => r.UserId === userId);
+            computedActiveReaction = userReaction ? userReaction.Type : null;
+        } else {
+            computedLikeCount = 0;
+            computedBooCount = 0;
+            computedActiveReaction = null;
+        }
+    });
 
     function formatTime(dateString) {
         if (!dateString || dateString === "0001-01-01T00:00:00") return "Okänt datum";
@@ -50,12 +68,12 @@
             const response = await toggleReaction(post.id, type);
             if (response.ok) {
                 const data = await response.json();
-                // Backend returnerar den nya statusen
-                activeReaction = data.reactionType; 
-                post.likeCount = data.likeCount;
-                post.booCount = data.booCount;
-        }
-            } catch (error) {
+                // Update computed values directly from backend response
+                computedLikeCount = data.likeCount;
+                computedBooCount = data.booCount;
+                computedActiveReaction = data.reactionType; 
+            }
+        } catch (error) {
             console.error("Domaren blåser av:", error);
         }
     }
@@ -138,14 +156,14 @@
         {#if !post.isDeleted}
         <button 
             onclick={() => handleReaction('Like')}
-            class="flex items-center transition-colors {activeReaction === 'Like' ? 'text-green-600' : 'text-gray-500 hover:text-green-500'}">
-            <span>Jubel ({post.likeCount || 0})</span>
+            class="flex items-center transition-colors {computedActiveReaction === 'Like' ? 'text-green-600' : 'text-gray-500 hover:text-green-500'}">
+            <span>Jubel ({computedLikeCount})</span>
         </button>
 
         <button 
             onclick={() => handleReaction('Boo')}
-            class="flex items-center transition-colors {activeReaction === 'Boo' ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}">
-            <span>Buu ({post.booCount || 0})</span>
+            class="flex items-center transition-colors {computedActiveReaction === 'Boo' ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}">
+            <span>Buu ({computedBooCount})</span>
         </button>
         <button 
             onclick={() => showReplyForm = !showReplyForm} aria-label="Svara på inlägg"
