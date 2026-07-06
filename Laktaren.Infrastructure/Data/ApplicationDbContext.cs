@@ -50,6 +50,12 @@ namespace Laktaren.Infrastructure.Data
                 .WithMany(t => t.Supporters)
                 .UsingEntity(j => j.ToTable("UserSecondaryTeams"));
 
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.FavoriteTeam)
+                .WithMany() //
+                .HasForeignKey(u => u.TeamId)
+                .IsRequired(false);
+
             modelBuilder.Entity<Post>()
                 .HasOne(p => p.ParentPost)
                 .WithMany(p => p.Replies)
