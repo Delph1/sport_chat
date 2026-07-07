@@ -50,7 +50,10 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetRepliesAsync(Guid postId)
         {
-            var replies = await _postRepository.GetRepliesAsync(postId);
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserId = userIdString != null && Guid.TryParse(userIdString, out Guid userId) ? userId : Guid.Empty;
+
+            var replies = await _postRepository.GetRepliesAsync(postId, currentUserId);
             return Ok(replies);
         }
 
@@ -59,7 +62,9 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var post = await _postRepository.GetByIdAsync(id);
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserId = userIdString != null && Guid.TryParse(userIdString, out Guid userId) ? userId : Guid.Empty;
+            var post = await _postRepository.GetByIdAsync(id, currentUserId);
             if (post == null)
             {
                 return NotFound("Post not found.");
@@ -72,12 +77,15 @@ namespace Laktaren.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPostsByUserIdAsync(Guid userId)
         {
-            if (userId == Guid.Empty)
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserId = userIdString != null && Guid.TryParse(userIdString, out Guid parsedUserId) ? parsedUserId : Guid.Empty;
+
+            if (currentUserId == Guid.Empty)
             {
                 return BadRequest("Ogiltigt användar-ID.");
             }
 
-            var posts = await _postRepository.GetPostsByUserIdAsync(userId);
+            var posts = await _postRepository.GetPostsByUserIdAsync(userId, currentUserId);
             return Ok(posts);
         }
 
@@ -142,9 +150,10 @@ namespace Laktaren.Api.Controllers
         public async Task<IActionResult> DeletePostAsync(Guid id)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserId = userIdString != null && Guid.TryParse(userIdString, out Guid userId) ? userId : Guid.Empty;
 
-            PostDto? post = await _postRepository.GetByIdAsync(id);
-            if (Guid.Parse(userIdString) != post.UserId) {
+            PostDto? post = await _postRepository.GetByIdAsync(id, currentUserId);
+            if (currentUserId != post.UserId) {
                 return Unauthorized("You are not authorized to delete this post.");
 }
             if (string.IsNullOrEmpty(userIdString))

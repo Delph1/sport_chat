@@ -8,7 +8,7 @@ namespace Laktaren.Application.Interfaces
 {
     public interface IReactionRepository
     {
-        public Task<ReactionsDto> GetReactionsByPostIdAsync(Guid postId);
+        public Task<ReactionsDto> GetReactionsByPostIdAsync(Guid postId, Guid currentUserId);
         public Task<ReactionsDto> ToggleReactionAsync(Reaction reaction);
     }
 }

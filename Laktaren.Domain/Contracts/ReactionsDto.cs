@@ -1,3 +1,5 @@
+using Laktaren.Domain.Enums;
+
 namespace Laktaren.Domain.Contracts
 {
     public class ReactionsDto

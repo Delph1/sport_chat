@@ -28,8 +28,10 @@ namespace Laktaren.Api.Controllers
             {
                 return BadRequest("Inget giltigt inlägg angavs.");
             }
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var reactions = await _reactionRepository.GetReactionsByPostIdAsync(postId);
+            var reactions = await _reactionRepository.GetReactionsByPostIdAsync(postId, userIdString != null && Guid.TryParse(userIdString, out Guid userId) ? userId : Guid.Empty);
+            
             return Ok(reactions);
         }
 

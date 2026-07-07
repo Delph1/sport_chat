@@ -15,7 +15,7 @@ namespace Laktaren.Infrastructure.Data
             _context = context;
         }
 
-        public async Task<ReactionsDto> GetReactionsByPostIdAsync(Guid postId)
+        public async Task<ReactionsDto> GetReactionsByPostIdAsync(Guid postId, Guid currentUserId)
         {
             var reactions = await _context.Reactions
                 .Include(r => r.User)
@@ -41,6 +41,8 @@ namespace Laktaren.Infrastructure.Data
 
         public async Task<ReactionsDto> ToggleReactionAsync(Reaction reaction)
         {
+            var currentUserId = reaction.UserId;
+
             var existingReaction = await _context.Reactions
                 .FirstOrDefaultAsync(r => r.UserId == reaction.UserId && r.PostId == reaction.PostId);
 

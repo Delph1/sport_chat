@@ -52,7 +52,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
-                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
+                    UserReaction = null
                 }
             }).ToList();
         }
@@ -93,13 +93,13 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
-                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
+                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == userId)?.Type
                 }
             }).ToList();
         }
 
         //Get all replies for a specific post
-        public async Task<List<PostDto>> GetRepliesAsync(Guid postId)
+        public async Task<List<PostDto>> GetRepliesAsync(Guid postId, Guid currentUserId)
         {
             var replies =  await _context.Posts
                 .Include(p => p.Author)
@@ -139,7 +139,7 @@ namespace Laktaren.Infrastructure.Data
             }).ToList();
         }
 
-        public async Task<PostDto?> GetByIdAsync(Guid id)
+        public async Task<PostDto?> GetByIdAsync(Guid id, Guid currentUserId)
         {
             if (id == Guid.Empty)
             {
@@ -181,7 +181,7 @@ namespace Laktaren.Infrastructure.Data
             } : null;
         }
 
-        public async Task<List<PostDto>> GetPostsByUserIdAsync(Guid userId)
+        public async Task<List<PostDto>> GetPostsByUserIdAsync(Guid userId, Guid currentUserId)
         {
             var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
@@ -192,18 +192,18 @@ namespace Laktaren.Infrastructure.Data
 
             return posts.Select(p => new PostDto
             {
-                Id = post.Id,
-                UserId = post.UserId,
-                Content = post.Content,
-                IsDeleted = post.IsDeleted,
-                Author = post.Author,
-                ReplyCount = post.ReplyCount,
-                ParentPostId = post.ParentPostId,
-                IsClubHouseOnly = post.IsClubHouseOnly,
-                TargetTeamId = post.TargetTeamId,
-                ParentPost = post.ParentPost,
-                CreatedAt = post.CreatedAt,
-                UpdatedAt = post.UpdatedAt,
+                Id = p.Id,
+                UserId = p.UserId,
+                Content = p.Content,
+                IsDeleted = p.IsDeleted,
+                Author = p.Author,
+                ReplyCount = p.ReplyCount,
+                ParentPostId = p.ParentPostId,
+                IsClubHouseOnly = p.IsClubHouseOnly,
+                TargetTeamId = p.TargetTeamId,
+                ParentPost = p.ParentPost,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
                 Reactions = new ReactionsDto
                 {
                     LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
