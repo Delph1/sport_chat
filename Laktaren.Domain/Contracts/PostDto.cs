@@ -1,10 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using Laktaren.Domain.Entities;
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations.Schema;
 using static System.Collections.Specialized.BitVector32;
 
-namespace Laktaren.Domain.Entities
+namespace Laktaren.Domain.Contracts
 {
-    public class Post
+    public class PostDto
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
@@ -15,12 +16,8 @@ namespace Laktaren.Domain.Entities
         public Guid? ParentPostId { get; set; }
         public bool IsClubHouseOnly { get; set; } = false;
         public Guid? TargetTeamId { get; set; }
-        [JsonIgnore]
         public Post? ParentPost { get; set; }
-        [JsonIgnore]
-        public ICollection<Post> Replies { get; set; } = new List<Post>();
-        [JsonIgnore]
-        public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
+        public ReactionsDto Reactions { get; set; } = new ReactionsDto();
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

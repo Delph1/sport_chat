@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Laktaren.Application.Interfaces;
+using Laktaren.Domain.Enums;
 using Laktaren.Domain.Entities;
+using Laktaren.Domain.Contracts;
 
 namespace Laktaren.Infrastructure.Data
 {
@@ -13,59 +15,195 @@ namespace Laktaren.Infrastructure.Data
         {
             _context = context;
         }
+
         //Get all Parent Posts
-        public async Task<List<Post>> GetAllPostsAsync()
+        public async Task<List<PostDto>> GetAllPostsAsync()
         {
-            return await _context.Posts
+            var posts = await _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Reactions).ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
                 .Where(p => p.ParentPostId == null && !p.IsClubHouseOnly)
                 .ToListAsync();
+                
+            return posts.Select(p => new PostDto
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                Content = p.Content,
+                IsDeleted = p.IsDeleted,
+                Author = p.Author,
+                ReplyCount = p.ReplyCount,
+                ParentPostId = p.ParentPostId,
+                IsClubHouseOnly = p.IsClubHouseOnly,
+                TargetTeamId = p.TargetTeamId,
+                ParentPost = p.ParentPost,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                Reactions = new ReactionsDto
+                {
+                    LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
+                    BooCount = p.Reactions.Count(r => r.Type == ReactionType.Boo),
+                    LikesPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Like && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    BoosPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Boo && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                }
+            }).ToList();
         }
 
-        public async Task<List<Post>> GetPostsForUserIdAsync(Guid userId)
+        //Get all parent posts for a specific user, including club house posts if the user is part of the target team
+        public async Task<List<PostDto>> GetPostsForUserIdAsync(Guid userId)
         {
             var user = await _context.Users.FindAsync(userId);
-            return await _context.Posts
+
+            var posts = await _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Reactions).ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
                 .Where(p => p.ParentPostId == null && 
                     (!p.IsClubHouseOnly || (p.IsClubHouseOnly && p.TargetTeamId == user.TeamId)))
                 .ToListAsync();
+
+            return posts.Select(p => new PostDto
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                Content = p.Content,
+                IsDeleted = p.IsDeleted,
+                Author = p.Author,
+                ReplyCount = p.ReplyCount,
+                ParentPostId = p.ParentPostId,
+                IsClubHouseOnly = p.IsClubHouseOnly,
+                TargetTeamId = p.TargetTeamId,
+                Reactions = new ReactionsDto
+                {
+                    LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
+                    BooCount = p.Reactions.Count(r => r.Type == ReactionType.Boo),
+                    LikesPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Like && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    BoosPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Boo && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                }
+            }).ToList();
         }
 
-        public async Task<List<Post>> GetRepliesAsync(Guid postId)
+        //Get all replies for a specific post
+        public async Task<List<PostDto>> GetRepliesAsync(Guid postId)
         {
-            return await _context.Posts
-                .Where(p => p.ParentPostId == postId)
+            var replies =  await _context.Posts
                 .Include(p => p.Author)
-                .OrderBy(p => p.CreatedAt)
+                .Include(p => p.Reactions).ThenInclude(r => r.Team)
+                .OrderByDescending(p => p.CreatedAt)
+                .Where(p => p.ParentPostId == postId)
                 .ToListAsync();
+            
+            return replies.Select(p => new PostDto
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                Content = p.Content,
+                IsDeleted = p.IsDeleted,
+                Author = p.Author,
+                ReplyCount = p.ReplyCount,
+                ParentPostId = p.ParentPostId,
+                IsClubHouseOnly = p.IsClubHouseOnly,
+                TargetTeamId = p.TargetTeamId,
+                ParentPost = p.ParentPost,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                Reactions = new ReactionsDto
+                {
+                    LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
+                    BooCount = p.Reactions.Count(r => r.Type == ReactionType.Boo),
+                    LikesPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Like && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    BoosPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Boo && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                }
+            }).ToList();
         }
-        public async Task<Post?> GetByIdAsync(Guid id)
+
+        public async Task<PostDto?> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
             {
                 return null;
             }
-
-            return await _context.Posts
+            var post = await _context.Posts
                 .Include(p => p.Author)
-                .Include(p => p.Reactions)
-                    .ThenInclude(r => r.Team)
+                .Include(p => p.Reactions).ThenInclude(r => r.Team)
                 .FirstOrDefaultAsync(p => p.Id == id);
+
+            return post != null ? new PostDto
+            {
+                Id = post.Id,
+                UserId = post.UserId,
+                Content = post.Content,
+                IsDeleted = post.IsDeleted,
+                Author = post.Author,
+                ReplyCount = post.ReplyCount,
+                ParentPostId = post.ParentPostId,
+                IsClubHouseOnly = post.IsClubHouseOnly,
+                TargetTeamId = post.TargetTeamId,
+                ParentPost = post.ParentPost,
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt,
+                Reactions = new ReactionsDto
+                {
+                    LikeCount = post.Reactions.Count(r => r.Type == ReactionType.Like),
+                    BooCount = post.Reactions.Count(r => r.Type == ReactionType.Boo),
+                    LikesPerTeam = post.Reactions
+                        .Where(r => r.Type == ReactionType.Like && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    BoosPerTeam = post.Reactions
+                        .Where(r => r.Type == ReactionType.Boo && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                }
+            } : null;
         }
 
-        public async Task<List<Post>> GetPostsByUserIdAsync(Guid userId)
+        public async Task<List<PostDto>> GetPostsByUserIdAsync(Guid userId)
         {
-            return await _context.Posts
+            var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
                 .Include(p => p.Reactions)
                     .ThenInclude(r => r.Team)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync() ?? new List<Post>();
+
+            return posts.Select(p => new PostDto
+            {
+                Id = p.Id,
+                Content = p.Content,
+                Reactions = new ReactionsDto
+                {
+                    LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
+                    BooCount = p.Reactions.Count(r => r.Type == ReactionType.Boo),
+                    LikesPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Like && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    BoosPerTeam = p.Reactions
+                        .Where(r => r.Type == ReactionType.Boo && r.Team != null)
+                        .GroupBy(r => r.Team.Name)
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                }
+            }).ToList();
         }
 
         public async Task<Post> CreatePostAsync(Post post)

@@ -1,4 +1,5 @@
 ﻿using Laktaren.Application.Interfaces;
+using Laktaren.Domain.Contracts;
 using Laktaren.Domain.Entities;
 using Laktaren.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -31,7 +32,7 @@ namespace Laktaren.Api.Controllers
 
         [Authorize]
         [HttpGet("for-user/{userId}")]
-        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PostDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPostsForUserIdAsync(Guid userId)
         {
@@ -40,12 +41,12 @@ namespace Laktaren.Api.Controllers
                 return BadRequest("Ogiltigt användar-ID.");
             }
 
-            List<Post> posts = await _postRepository.GetPostsForUserIdAsync(userId);
+            var posts = await _postRepository.GetPostsForUserIdAsync(userId);
             return Ok(posts);
         }
 
         [HttpGet("{postId}/replies/")]
-        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PostDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetRepliesAsync(Guid postId)
         {
@@ -54,11 +55,11 @@ namespace Laktaren.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Post), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PostDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            Post? post = await _postRepository.GetByIdAsync(id);
+            var post = await _postRepository.GetByIdAsync(id);
             if (post == null)
             {
                 return NotFound("Post not found.");
@@ -67,7 +68,7 @@ namespace Laktaren.Api.Controllers
         }
 
         [HttpGet("by-user/{userId}")]
-        [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PostDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPostsByUserIdAsync(Guid userId)
         {
@@ -76,7 +77,7 @@ namespace Laktaren.Api.Controllers
                 return BadRequest("Ogiltigt användar-ID.");
             }
 
-            List<Post> posts = await _postRepository.GetPostsByUserIdAsync(userId);
+            var posts = await _postRepository.GetPostsByUserIdAsync(userId);
             return Ok(posts);
         }
 
@@ -142,7 +143,7 @@ namespace Laktaren.Api.Controllers
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            Post? post = await _postRepository.GetByIdAsync(id);
+            PostDto? post = await _postRepository.GetByIdAsync(id);
             if (Guid.Parse(userIdString) != post.UserId) {
                 return Unauthorized("You are not authorized to delete this post.");
 }

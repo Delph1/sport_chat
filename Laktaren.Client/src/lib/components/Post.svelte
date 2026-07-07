@@ -13,8 +13,6 @@
     // Reactive effect to compute reaction counts and user's active reaction
     $effect(() => {
         if (post && post.Reactions) {
-            computedLikeCount = post.Reactions.filter(r => r.Type === 'Like').length;
-            computedBooCount = post.Reactions.filter(r => r.Type === 'Boo').length;
             const userId = localStorage.getItem('userId');
             const userReaction = post.Reactions.find(r => r.UserId === userId);
             computedActiveReaction = userReaction ? userReaction.Type : null;
@@ -67,11 +65,7 @@
         try {
             const response = await toggleReaction(post.id, type);
             if (response.ok) {
-                const data = await response.json();
-                // Update computed values directly from backend response
-                computedLikeCount = data.likeCount;
-                computedBooCount = data.booCount;
-                computedActiveReaction = data.reactionType; 
+                post.reactions = await response.json(); 
             }
         } catch (error) {
             console.error("Domaren blåser av:", error);
@@ -157,13 +151,13 @@
         <button 
             onclick={() => handleReaction('Like')}
             class="flex items-center transition-colors {computedActiveReaction === 'Like' ? 'text-green-600' : 'text-gray-500 hover:text-green-500'}">
-            <span>Jubel ({computedLikeCount})</span>
+            <span>Jubel ({post.reactions.likeCount})</span>
         </button>
 
         <button 
             onclick={() => handleReaction('Boo')}
             class="flex items-center transition-colors {computedActiveReaction === 'Boo' ? 'text-red-600' : 'text-gray-500 hover:text-red-500'}">
-            <span>Buu ({computedBooCount})</span>
+            <span>Buu ({post.reactions.booCount})</span>
         </button>
         <button 
             onclick={() => showReplyForm = !showReplyForm} aria-label="Svara på inlägg"
