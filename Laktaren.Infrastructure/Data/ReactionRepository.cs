@@ -19,7 +19,7 @@ namespace Laktaren.Infrastructure.Data
         {
             var reactions = await _context.Reactions
                 .Include(r => r.User)
-                    .ThenInclude(u => u.FavoriteTeam) // Nu kommer vi åt Team-namnet!
+                    .ThenInclude(u => u.FavoriteTeam)
                 .Where(r => r.PostId == postId)
                 .ToListAsync();
 
@@ -29,7 +29,7 @@ namespace Laktaren.Infrastructure.Data
                 BooCount = reactions.Count(r => r.Type == ReactionType.Boo),
                 LikesPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Like && r.User.FavoriteTeam != null)
-                    .GroupBy(r => r.User.FavoriteTeam!.Name) // Här har vi nu namnet
+                    .GroupBy(r => r.User.FavoriteTeam!.Name)
                     .ToDictionary(g => g.Key, g => g.Count()),
                 BoosPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
@@ -45,18 +45,21 @@ namespace Laktaren.Infrastructure.Data
 
             if (existingReaction != null)
             {
-                _context.Reactions.Remove(existingReaction);
-                await _context.SaveChangesAsync();
+               if (existingReaction.Type == reaction.Type)
+                {
+                    _context.Reactions.Remove(existingReaction);
+                }
+                else
+                {
+                    existingReaction.Type = reaction.Type;
+                }
             }
-            else
-            {
-                await _context.Reactions.AddAsync(reaction);
-                await _context.SaveChangesAsync();
-            }
+
+            await _context.SaveChangesAsync();
 
             var reactions = await _context.Reactions
                 .Include(r => r.User)
-                    .ThenInclude(u => u.FavoriteTeam) // Nu kommer vi åt Team-namnet!
+                    .ThenInclude(u => u.FavoriteTeam)
                 .Where(r => r.PostId == reaction.PostId)
                 .ToListAsync();
 
@@ -66,7 +69,7 @@ namespace Laktaren.Infrastructure.Data
                 BooCount = reactions.Count(r => r.Type == ReactionType.Boo),
                 LikesPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Like && r.User.FavoriteTeam != null)
-                    .GroupBy(r => r.User.FavoriteTeam!.Name) // Här har vi nu namnet
+                    .GroupBy(r => r.User.FavoriteTeam!.Name)
                     .ToDictionary(g => g.Key, g => g.Count()),
                 BoosPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
