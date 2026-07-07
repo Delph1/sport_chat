@@ -52,6 +52,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
+                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
                 }
             }).ToList();
         }
@@ -92,6 +93,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
+                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
                 }
             }).ToList();
         }
@@ -132,6 +134,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
+                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
                 }
             }).ToList();
         }
@@ -173,6 +176,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
+                    UserReaction = post.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
                 }
             } : null;
         }
@@ -188,8 +192,18 @@ namespace Laktaren.Infrastructure.Data
 
             return posts.Select(p => new PostDto
             {
-                Id = p.Id,
-                Content = p.Content,
+                Id = post.Id,
+                UserId = post.UserId,
+                Content = post.Content,
+                IsDeleted = post.IsDeleted,
+                Author = post.Author,
+                ReplyCount = post.ReplyCount,
+                ParentPostId = post.ParentPostId,
+                IsClubHouseOnly = post.IsClubHouseOnly,
+                TargetTeamId = post.TargetTeamId,
+                ParentPost = post.ParentPost,
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt,
                 Reactions = new ReactionsDto
                 {
                     LikeCount = p.Reactions.Count(r => r.Type == ReactionType.Like),
@@ -202,6 +216,7 @@ namespace Laktaren.Infrastructure.Data
                         .Where(r => r.Type == ReactionType.Boo && r.Team != null)
                         .GroupBy(r => r.Team.Name)
                         .ToDictionary(g => g.Key, g => g.Count()),
+                    UserReaction = p.Reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
                 }
             }).ToList();
         }

@@ -6,5 +6,6 @@ namespace Laktaren.Domain.Contracts
         public int BooCount { get; set; }
         public Dictionary<string, int> LikesPerTeam { get; set; } = new();
         public Dictionary<string, int> BoosPerTeam { get; set; } = new();
+        public ReactionType? UserReaction { get; set; } 
     }
 }

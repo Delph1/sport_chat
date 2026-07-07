@@ -34,7 +34,8 @@ namespace Laktaren.Infrastructure.Data
                 BoosPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
                     .GroupBy(r => r.User.FavoriteTeam!.Name)
-                    .ToDictionary(g => g.Key, g => g.Count())
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                UserReaction = reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
             };
         }
 
@@ -74,7 +75,8 @@ namespace Laktaren.Infrastructure.Data
                 BoosPerTeam = reactions
                     .Where(r => r.Type == ReactionType.Boo && r.User.FavoriteTeam != null)
                     .GroupBy(r => r.User.FavoriteTeam!.Name)
-                    .ToDictionary(g => g.Key, g => g.Count())
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                UserReaction = reactions.FirstOrDefault(r => r.UserId == currentUserId)?.Type
             };
         }
     }
